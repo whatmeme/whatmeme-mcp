@@ -6,8 +6,7 @@
  * 중요: 🔥/⚖️/🧊 같은 상태 표현은 포함하지 않음 → 상태는 check_meme_status 사용
  */
 
-import { findMemeByKeyword } from '../data/hotMemes.js';
-import { normalizeMemeQuery } from '../utils/queryNormalizer.js';
+import { resolveMeme } from '../domain/memeResolver.js';
 
 /**
  * 밈의 뜻과 유래 검색 (뜻, 유래, 예시 포함)
@@ -16,36 +15,34 @@ import { normalizeMemeQuery } from '../utils/queryNormalizer.js';
  */
 export async function searchMemeMeaning(keyword: string): Promise<string> {
   try {
-    // 입력 정규화
-    const normalizedKeyword = normalizeMemeQuery(keyword);
-    
-    if (!normalizedKeyword || normalizedKeyword.length < 1) {
-      return `❓ 검색어가 너무 짧습니다. 밈 이름을 입력해주세요.`;
-    }
+    // 공통 resolver 사용
+    const result = resolveMeme(keyword);
 
-    // DB에서 검색
-    const memeData = findMemeByKeyword(normalizedKeyword);
-
-    if (!memeData) {
+    if (!result.ok) {
+      if (result.reason === 'EMPTY') {
+        return `❓ 검색어가 너무 짧습니다. 밈 이름을 입력해주세요.`;
+      }
       return `❓ "${keyword}"는 현재 밈 DB에 없습니다. (일반 단어일 수 있어요)\n추가가 필요하면 밈 이름/설명을 알려주세요.\n\n💡 유행 상태를 확인하고 싶다면 check_meme_status를 사용해보세요.`;
     }
 
-    // 결과 포맷팅 (상태 표현 절대 포함 안 함)
-    const tagsText = memeData.tags.map(tag => `#${tag}`).join(' ');
-    const examplesText = memeData.examples.map(ex => `- ${ex}`).join('\n');
+    const { meme } = result;
 
-    let result = `**${memeData.name}**\n\n`;
-    result += `**뜻**\n${memeData.meaning}\n\n`;
-    result += `**유래**\n${memeData.origin}\n\n`;
+    // 결과 포맷팅 (상태 표현 절대 포함 안 함)
+    const tagsText = meme.tags.map(tag => `#${tag}`).join(' ');
+    const examplesText = meme.examples.map(ex => `- ${ex}`).join('\n');
+
+    let output = `**${meme.name}**\n\n`;
+    output += `**뜻**\n${meme.meaning}\n\n`;
+    output += `**유래**\n${meme.origin}\n\n`;
     
-    if (memeData.examples.length > 0) {
-      result += `**사용 예시**\n${examplesText}\n\n`;
+    if (meme.examples.length > 0) {
+      output += `**사용 예시**\n${examplesText}\n\n`;
     }
     
-    result += `**태그**\n${tagsText}\n\n`;
-    result += `💡 유행 상태를 확인하고 싶다면 check_meme_status를 사용해보세요.`;
+    output += `**태그**\n${tagsText}\n\n`;
+    output += `💡 유행 상태를 확인하고 싶다면 check_meme_status를 사용해보세요.`;
 
-    return result;
+    return output;
     
   } catch (error) {
     const errorMessage = error instanceof Error ? error.message : String(error);

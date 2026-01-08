@@ -1,12 +1,12 @@
 /**
  * 인메모리 밈 데이터베이스
  * 핫한 밈들의 정보를 저장하는 상수 배열
- * 사전형 DB로 확장 (의미, 유래, 예시 포함)
+ * 사전형 DB (상용급 스키마: contexts, moods, popularity 포함)
  */
 
 import type { MemeData } from '../types/index.js';
 
-// 핫한 밈 목록 (확장된 스키마)
+// 핫한 밈 목록 (상용급 스키마)
 export const CONST_HOT_MEMES: MemeData[] = [
   {
     id: 'lucky-vicky',
@@ -20,7 +20,11 @@ export const CONST_HOT_MEMES: MemeData[] = [
       '늦잠 잤는데 출근 시간 지남 → "충분히 잤으니 오늘 컨디션 최고겠다 럭키비키"'
     ],
     tags: ['긍정', '마인드', '아이돌', '원영'],
+    contexts: ['퇴근', '출근', '회사', '일', '직장', '근무', '피곤', '힘든', '어려운', '실패', '불행'],
+    moods: ['긍정', '자조', '유쾌', '낙관', '여유'],
     trendRank: 1,
+    popularity: 95,
+    updatedAt: '2026-01-08',
   },
   {
     id: 'jung-geom-ma',
@@ -34,7 +38,11 @@ export const CONST_HOT_MEMES: MemeData[] = [
       '프로젝트 마감 전 → "중꺾마로 버티자!"'
     ],
     tags: ['동기부여', 'e스포츠', '포기하지않기'],
+    contexts: ['시험', '공부', '스트레스', '힘든', '어려운', '프로젝트', '마감', '헬스', '운동', '포기'],
+    moods: ['의지', '각성', '투지', '불굴', '인내'],
     trendRank: 2,
+    popularity: 90,
+    updatedAt: '2026-01-08',
   },
   {
     id: 'tiramisu-cake',
@@ -48,7 +56,11 @@ export const CONST_HOT_MEMES: MemeData[] = [
       '기분 좋을 때 → "띠라띠라 미친미친 상태"'
     ],
     tags: ['신남', '흥분', '유쾌'],
+    contexts: ['주말', '친구', '놀', '쉬', '여가', '휴식'],
+    moods: ['신남', '흥분', '유쾌', '기쁨', '행복'],
     trendRank: 3,
+    popularity: 85,
+    updatedAt: '2026-01-08',
   },
   {
     id: 'frozen-hangang',
@@ -62,7 +74,11 @@ export const CONST_HOT_MEMES: MemeData[] = [
       '차가운 반응 받을 때 → "꽁꽁 얼어붙은 한강 같다"'
     ],
     tags: ['추위', '분위기', '냉랭'],
+    contexts: ['회의', '대화', '만남', '모임', '분위기', '어색'],
+    moods: ['냉랭', '경직', '어색', '불편', '차갑'],
     trendRank: 4,
+    popularity: 75,
+    updatedAt: '2026-01-08',
   },
   {
     id: 'hell-chang',
@@ -76,7 +92,11 @@ export const CONST_HOT_MEMES: MemeData[] = [
       '근육 자랑할 때 → "헬창 인증"'
     ],
     tags: ['헬스', '운동', '건강'],
+    contexts: ['헬스', '운동', '체육관', '피트니스', '다이어트', '건강'],
+    moods: ['열정', '투지', '의지', '집착', '열성'],
     trendRank: 5,
+    popularity: 70,
+    updatedAt: '2026-01-08',
   },
   {
     id: 'pelvic-dance',
@@ -90,7 +110,11 @@ export const CONST_HOT_MEMES: MemeData[] = [
       '유행 안무 언급 → "골반춤 진짜 중독적이야"'
     ],
     tags: ['트렌드', '춤', 'K-pop', '영상'],
+    contexts: ['춤', '안무', '영상', '엔터', 'K-pop', '쇼츠', '틱톡'],
+    moods: ['신남', '유쾌', '흥분', '재미', '즐거움'],
     trendRank: 6,
+    popularity: 65,
+    updatedAt: '2026-01-08',
   },
   {
     id: 'eojjeol-tv',
@@ -104,7 +128,11 @@ export const CONST_HOT_MEMES: MemeData[] = [
       '말장난 할 때 → "어쩔티비 안물티비 뇌절티비"'
     ],
     tags: ['트렌드', '말장난', '10대'],
+    contexts: ['대화', '반응', '말장난', '농담', '유머'],
+    moods: ['유쾌', '재미', '장난', '쾌활', '가벼움'],
     trendRank: 7,
+    popularity: 60,
+    updatedAt: '2026-01-08',
   },
 ];
 

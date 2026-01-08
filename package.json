@@ -12,7 +12,8 @@
     "start:sse": "node dist/index.js --transport sse",
     "typecheck": "tsc --noEmit",
     "test": "tsx test-functions.ts",
-    "test:manual": "tsx test-manual.ts"
+    "test:manual": "tsx test-manual.ts",
+    "test:smoke": "tsx test-smoke.ts"
   },
   "keywords": [
     "mcp",
