@@ -209,18 +209,20 @@ async function main() {
 
     // MCP 서버를 transport에 연결
     await server.connect(transport);
+    console.error('MCP server connected to transport');
 
     // Streamable HTTP 엔드포인트 (/mcp)
     // Stateless: 요청마다 동일한 transport 인스턴스 사용
     app.post('/mcp', async (req, res) => {
       try {
+        console.error('POST /mcp request received');
         // handleRequest가 요청을 처리하고 응답을 전송함
         await transport.handleRequest(req, res, req.body);
-        console.error('Streamable HTTP request processed');
+        console.error('Streamable HTTP POST request processed');
       } catch (error) {
-        console.error('Streamable HTTP error:', error);
+        console.error('Streamable HTTP POST error:', error);
         if (!res.headersSent) {
-          res.status(500).json({ error: 'Internal server error' });
+          res.status(500).json({ error: 'Internal server error', details: error instanceof Error ? error.message : String(error) });
         }
       }
     });
@@ -228,12 +230,13 @@ async function main() {
     // GET 요청도 지원 (SSE 스트림용, 선택적)
     app.get('/mcp', async (req, res) => {
       try {
+        console.error('GET /mcp request received');
         await transport.handleRequest(req, res);
         console.error('Streamable HTTP GET request processed');
       } catch (error) {
         console.error('Streamable HTTP GET error:', error);
         if (!res.headersSent) {
-          res.status(500).json({ error: 'Internal server error' });
+          res.status(500).json({ error: 'Internal server error', details: error instanceof Error ? error.message : String(error) });
         }
       }
     });
