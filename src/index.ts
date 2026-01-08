@@ -239,8 +239,9 @@ async function main() {
     });
 
     // HTTP 서버 시작
-    const port = env.PORT || 3000;
-    app.listen(port, () => {
+    const port = Number(process.env.PORT ?? env.PORT ?? 3000);
+    app.listen(port, '0.0.0.0', () => {
+      console.error(`Listening on 0.0.0.0:${port}`);
       console.error(`WhatMeme MCP Server running on http://localhost:${port}/mcp`);
       console.error(`PlayMCP endpoint: http://localhost:${port}/mcp`);
     });
