@@ -163,12 +163,12 @@ setupServerHandlers(server);
 
 // 서버 시작 함수
 async function main() {
-  // 명령행 인자 파싱
+  // 명령행 인자 파싱 (명령행 인자가 없으면 env.TRANSPORT_MODE 사용)
   const args = process.argv.slice(2);
   const transportIndex = args.indexOf('--transport');
   const transportMode = transportIndex >= 0 
-    ? args[transportIndex + 1] || 'stdio'
-    : 'stdio';
+    ? args[transportIndex + 1] || env.TRANSPORT_MODE
+    : env.TRANSPORT_MODE;
 
   if (transportMode === 'http' || transportMode === 'streamable') {
     // Streamable HTTP 모드: Express 서버 + StreamableHTTPServerTransport

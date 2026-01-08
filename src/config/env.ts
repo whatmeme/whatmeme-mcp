@@ -55,7 +55,7 @@ if (envPath) {
 // 환경변수 스키마 정의
 const envSchema = z.object({
   PORT: z.string().optional().default('3000').transform(Number),
-  TRANSPORT_MODE: z.enum(['stdio', 'sse']).optional().default('stdio'),
+  TRANSPORT_MODE: z.enum(['stdio', 'sse', 'http']).optional().default('http'),
 });
 
 // 환경변수 검증 및 export
