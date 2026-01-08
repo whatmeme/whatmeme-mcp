@@ -54,16 +54,12 @@ if (envPath) {
 
 // 환경변수 스키마 정의
 const envSchema = z.object({
-  NAVER_CLIENT_ID: z.string().min(1, 'NAVER_CLIENT_ID는 필수입니다'),
-  NAVER_CLIENT_SECRET: z.string().min(1, 'NAVER_CLIENT_SECRET은 필수입니다'),
   PORT: z.string().optional().default('3000').transform(Number),
   TRANSPORT_MODE: z.enum(['stdio', 'sse']).optional().default('stdio'),
 });
 
 // 환경변수 검증 및 export
 export const env = envSchema.parse({
-  NAVER_CLIENT_ID: process.env.NAVER_CLIENT_ID,
-  NAVER_CLIENT_SECRET: process.env.NAVER_CLIENT_SECRET,
   PORT: process.env.PORT,
   TRANSPORT_MODE: process.env.TRANSPORT_MODE,
 });

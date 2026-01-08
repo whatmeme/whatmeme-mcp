@@ -4,12 +4,12 @@
 
 ## 📖 프로젝트 소개
 
-WhatMeme은 네이버 검색 API를 활용하여 한국 밈의 유행 상태를 실시간으로 분석하고, 상황별 밈 추천 및 뜻 풀이를 제공하는 MCP 서버입니다.
+WhatMeme은 내부 DB 기반으로 한국 밈의 유행 상태를 분석하고, 상황별 밈 추천 및 뜻 풀이를 제공하는 MCP 서버입니다.
 
 ### 주요 기능
 
 1. **유행 판독기**: 밈의 현재 유행 상태를 분석하고 판정
-2. **최신 밈 추천**: 현재 인기 있는 밈 TOP 6 목록 제공
+2. **최신 밈 추천**: 현재 인기 있는 밈 TOP 5 목록 제공
 3. **상황별 밈 추천**: 주어진 상황에 맞는 밈 키워드 추천
 4. **뜻 풀이**: 밈의 뜻과 유래 검색 및 설명
 
@@ -31,8 +31,8 @@ whatmeme-mcp/
 │   │   └── env.ts            # 환경변수 로드 및 zod 검증
 │   ├── data/
 │   │   └── hotMemes.ts       # 인메모리 밈 DB (CONST_HOT_MEMES 배열)
-│   ├── services/
-│   │   └── naverAPI.ts       # 네이버 검색 API 클라이언트 클래스
+│   ├── domain/
+│   │   └── memeResolver.ts   # 공통 밈 해석기
 │   ├── tools/
 │   │   ├── index.ts          # 4개 Tool 통합 export
 │   │   ├── checkMemeStatus.ts        # Tool 1: 유행 판독기
@@ -40,7 +40,8 @@ whatmeme-mcp/
 │   │   ├── recommendMeme.ts          # Tool 3: 상황별 밈 추천
 │   │   └── searchMemeMeaning.ts      # Tool 4: 뜻 풀이
 │   ├── utils/
-│   │   ├── textCleaner.ts    # HTML 태그/엔티티 제거 함수
+│   │   ├── queryNormalizer.ts    # 밈 검색 쿼리 정규화
+│   │   ├── situationTokenizer.ts # 상황 텍스트 토큰화
 │   │   └── dateHelper.ts     # 날짜 계산 헬퍼 (date-fns 활용)
 │   └── types/
 │       └── index.ts          # TypeScript 인터페이스 정의
@@ -55,7 +56,7 @@ whatmeme-mcp/
 
 - **`src/config/`**: 환경변수 관리 및 검증
 - **`src/data/`**: 인메모리 밈 데이터베이스
-- **`src/services/`**: 외부 API 클라이언트 (네이버 검색 API)
+- **`src/domain/`**: 도메인 로직 (밈 해석기 등)
 - **`src/tools/`**: MCP Tool 구현체
 - **`src/utils/`**: 공통 유틸리티 함수
 - **`src/types/`**: TypeScript 타입 정의
@@ -77,22 +78,16 @@ cd whatmeme-mcp
 npm install
 ```
 
-### 3. 환경변수 설정
+### 3. 환경변수 설정 (선택)
 
-`.env` 파일을 생성하고 네이버 API 키를 설정하세요:
+`.env` 파일을 생성하고 선택적 환경변수를 설정하세요:
 
 ```env
-NAVER_CLIENT_ID=your_client_id_here
-NAVER_CLIENT_SECRET=your_client_secret_here
 PORT=3000
 TRANSPORT_MODE=stdio
 ```
 
-**네이버 API 키 발급 방법:**
-1. [네이버 개발자 센터](https://developers.naver.com/)에 접속
-2. 애플리케이션 등록
-3. 검색 API 사용 신청
-4. Client ID와 Client Secret 발급
+**참고:** 네이버 API는 사용하지 않으며, 모든 기능은 내부 DB 기반으로 동작합니다.
 
 ### 4. 빌드
 
@@ -159,10 +154,7 @@ Claude Desktop에서 MCP 서버를 사용하려면 설정 파일을 수정해야
       "args": [
         "/absolute/path/to/whatmeme-mcp/dist/index.js"
       ],
-      "env": {
-        "NAVER_CLIENT_ID": "your_client_id",
-        "NAVER_CLIENT_SECRET": "your_client_secret"
-      }
+      "env": {}
     }
   }
 }
@@ -181,10 +173,7 @@ Claude Desktop에서 MCP 서버를 사용하려면 설정 파일을 수정해야
         "--prefix",
         "/absolute/path/to/whatmeme-mcp"
       ],
-      "env": {
-        "NAVER_CLIENT_ID": "your_client_id",
-        "NAVER_CLIENT_SECRET": "your_client_secret"
-      }
+      "env": {}
     }
   }
 }
@@ -286,9 +275,8 @@ npm run test:manual
 이 명령어는 다음을 순차적으로 테스트합니다:
 1. `get_trending_memes` - 내부 데이터 (즉시 결과)
 2. `check_meme_status` - 내부 DB 검색 (즉시 결과)
-3. `check_meme_status` - 네이버 검색 (API 호출)
-4. `recommend_meme_for_context` - 네이버 이미지 검색 (API 호출)
-5. `search_meme_meaning` - 네이버 블로그 검색 (API 호출)
+3. `recommend_meme_for_context` - 내부 DB 기반 추천 (즉시 결과)
+4. `search_meme_meaning` - 내부 DB 검색 (즉시 결과)
 
 **장점:**
 - ✅ Claude Desktop 설치 불필요
@@ -344,14 +332,6 @@ npm run dev:sse
 태그: #동기부여
 ```
 
-**응답 예시 (네이버 검색):**
-```
-[검색 분석] 🔥 지금 핫한 밈입니다.
-
-"새로운밈" 분석 결과:
-- 최근 1개월 내 비율: 85%
-- 전체 검색 결과: 2,158개
-```
 
 ### 2. get_trending_memes (최신 밈 추천)
 
@@ -397,14 +377,8 @@ npm run dev:sse
 ```
 💡 "퇴근하고 싶을 때" 관련 밈 추천
 
-다음 키워드로 검색해보세요:
-
-1. 퇴근하고싶을때마다 문지르는 돌
-2. 익스트림무비 - 퇴근하고싶다
-3. 후방 저는 퇴근하고 싶을 때 찌찌짤을 올려요
-...
-
-🔍 더 많은 결과: [네이버 이미지 검색](링크)
+1. **럭키비키** — 운 좋은 원영, 모든 상황을 긍정적으로 해석하는 초긍정 마인드 (#긍정 #마인드) (매칭: 퇴근, 회사)
+2. **중꺾마** — 중간에 꺾이지 않는 마음, 포기하지 않고 끝까지 밀고 나가는 의지 (#동기부여) (매칭: 힘든, 포기)
 ```
 
 ### 4. search_meme_meaning (뜻 풀이)
@@ -423,12 +397,19 @@ npm run dev:sse
 
 **응답 예시:**
 ```
-"돔황챠" 검색 결과:
+**돔황챠**
 
-[블로그 1] 돔황챠의 뜻과 유래
-도망X 황당X 차단O의 줄임말로...
+**뜻**
+도망X 황당X 차단O의 줄임말
 
-[블로그 2] ...
+**유래**
+SNS나 온라인 커뮤니티에서...
+
+**사용 예시**
+- ...
+
+**태그**
+#트렌드 #인터넷
 ```
 
 ---
@@ -452,8 +433,6 @@ npm run dev:sse
 ```bash
 railway init
 railway up
-railway env set NAVER_CLIENT_ID=xxx
-railway env set NAVER_CLIENT_SECRET=xxx
 railway env set PORT=3000
 railway env set TRANSPORT_MODE=sse
 ```
@@ -469,8 +448,8 @@ railway env set TRANSPORT_MODE=sse
 
 ```bash
 fly launch
-fly secrets set NAVER_CLIENT_ID=xxx
-fly secrets set NAVER_CLIENT_SECRET=xxx
+fly secrets set PORT=3000
+fly secrets set TRANSPORT_MODE=sse
 ```
 
 ### PM2로 프로덕션 실행
@@ -501,19 +480,12 @@ pm2 save
 ### 전체 호환성
 - [ ] stdio 모드 정상 작동
 - [ ] SSE 모드 정상 작동
-- [ ] 네이버 API 호출 정상
+- [ ] 내부 DB 검색 정상
 - [ ] 에러 핸들링 정상
 
 ---
 
 ## 🆘 문제 해결
-
-### 문제: "NAVER_CLIENT_ID는 필수입니다"
-
-**해결:**
-- `.env` 파일이 프로젝트 루트에 있는지 확인
-- 환경변수 형식 확인 (`NAVER_CLIENT_ID=값`, 등호 앞뒤 공백 없음)
-- 파일 내용이 올바른지 확인
 
 ### 문제: Claude Desktop에서 서버 연결 실패
 
@@ -540,12 +512,6 @@ pm2 save
 4. CORS 설정 확인
 5. 네트워크 방화벽 확인
 
-### 문제: "네이버 API 검색 실패"
-
-**해결:**
-- API 키 유효성 확인
-- 네트워크 연결 확인
-- API 호출량 제한 확인 (일일 25,000건)
 
 ### 문제: 빌드 실패
 
@@ -563,11 +529,7 @@ pm2 save
    - `.env` 파일을 `.gitignore`에 추가
    - 공개 저장소에 커밋하지 않기
 
-2. **네이버 API 제한**
-   - 일일 25,000건 제한
-   - 프로덕션에서 Rate Limiting 구현 고려
-
-3. **포트 충돌**
+2. **포트 충돌**
    - SSE 모드 기본 포트: 3000
    - 다른 서비스와 포트 충돌 시 `PORT` 환경변수로 변경
 
@@ -578,8 +540,7 @@ pm2 save
 - **Runtime**: Node.js 20+ (LTS)
 - **Language**: TypeScript
 - **MCP SDK**: `@modelcontextprotocol/sdk`
-- **HTTP Client**: `axios`
-- **Date Handling**: `date-fns`
+- **Date Handling**: `date-fns` (선택적 사용)
 - **Schema Validation**: `zod`
 - **Web Framework**: `express` (SSE 모드용)
 
@@ -599,7 +560,7 @@ pm2 save
 - [x] stdio 모드 구현
 - [x] SSE 모드 구현
 - [x] 4개 Tool 구현
-- [x] 네이버 API 통합
+- [x] 내부 DB 기반 검색
 - [x] 에러 핸들링
 
 ### 테스트
