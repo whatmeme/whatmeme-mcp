@@ -1,0 +1,622 @@
+# WhatMeme (왓밈) MCP Server
+
+한국 밈 트렌드 분석 및 추천을 위한 MCP (Model Context Protocol) 서버입니다.
+
+## 📖 프로젝트 소개
+
+WhatMeme은 네이버 검색 API를 활용하여 한국 밈의 유행 상태를 실시간으로 분석하고, 상황별 밈 추천 및 뜻 풀이를 제공하는 MCP 서버입니다.
+
+### 주요 기능
+
+1. **유행 판독기**: 밈의 현재 유행 상태를 분석하고 판정
+2. **최신 밈 추천**: 현재 인기 있는 밈 TOP 6 목록 제공
+3. **상황별 밈 추천**: 주어진 상황에 맞는 밈 키워드 추천
+4. **뜻 풀이**: 밈의 뜻과 유래 검색 및 설명
+
+### 플랫폼 호환성
+
+- ✅ **Claude Desktop** (stdio 모드)
+- ✅ **PlayMCP** (SSE 모드)
+- ✅ **ChatGPT** (stdio/SSE 모드, 제한적 지원)
+
+---
+
+## 🏗️ 프로젝트 아키텍처
+
+```
+whatmeme-mcp/
+├── src/
+│   ├── index.ts              # MCP 서버 메인 진입점 (stdio + SSE 하이브리드)
+│   ├── config/
+│   │   └── env.ts            # 환경변수 로드 및 zod 검증
+│   ├── data/
+│   │   └── hotMemes.ts       # 인메모리 밈 DB (CONST_HOT_MEMES 배열)
+│   ├── services/
+│   │   └── naverAPI.ts       # 네이버 검색 API 클라이언트 클래스
+│   ├── tools/
+│   │   ├── index.ts          # 4개 Tool 통합 export
+│   │   ├── checkMemeStatus.ts        # Tool 1: 유행 판독기
+│   │   ├── getTrendingMemes.ts       # Tool 2: 최신 밈 추천
+│   │   ├── recommendMeme.ts          # Tool 3: 상황별 밈 추천
+│   │   └── searchMemeMeaning.ts      # Tool 4: 뜻 풀이
+│   ├── utils/
+│   │   ├── textCleaner.ts    # HTML 태그/엔티티 제거 함수
+│   │   └── dateHelper.ts     # 날짜 계산 헬퍼 (date-fns 활용)
+│   └── types/
+│       └── index.ts          # TypeScript 인터페이스 정의
+├── .env                      # 환경변수 (실제 API 키)
+├── .gitignore                # Git 제외 파일 목록
+├── package.json              # 의존성 & npm 스크립트
+├── tsconfig.json             # TypeScript 컴파일러 설정
+└── README.md                 # 프로젝트 문서
+```
+
+### 디렉토리 구조 설명
+
+- **`src/config/`**: 환경변수 관리 및 검증
+- **`src/data/`**: 인메모리 밈 데이터베이스
+- **`src/services/`**: 외부 API 클라이언트 (네이버 검색 API)
+- **`src/tools/`**: MCP Tool 구현체
+- **`src/utils/`**: 공통 유틸리티 함수
+- **`src/types/`**: TypeScript 타입 정의
+
+---
+
+## 🚀 설치 방법
+
+### 1. 저장소 클론
+
+```bash
+git clone <repository-url>
+cd whatmeme-mcp
+```
+
+### 2. 의존성 설치
+
+```bash
+npm install
+```
+
+### 3. 환경변수 설정
+
+`.env` 파일을 생성하고 네이버 API 키를 설정하세요:
+
+```env
+NAVER_CLIENT_ID=your_client_id_here
+NAVER_CLIENT_SECRET=your_client_secret_here
+PORT=3000
+TRANSPORT_MODE=stdio
+```
+
+**네이버 API 키 발급 방법:**
+1. [네이버 개발자 센터](https://developers.naver.com/)에 접속
+2. 애플리케이션 등록
+3. 검색 API 사용 신청
+4. Client ID와 Client Secret 발급
+
+### 4. 빌드
+
+```bash
+npm run build
+```
+
+---
+
+## 🎮 실행 방법
+
+### 개발 모드
+
+#### stdio 모드 (Claude Desktop, ChatGPT용)
+
+```bash
+npm run dev
+```
+
+#### SSE 모드 (PlayMCP용)
+
+```bash
+npm run dev:sse
+```
+
+서버가 `http://localhost:3000/sse`에서 실행됩니다.
+
+### 프로덕션 모드
+
+#### stdio 모드
+
+```bash
+npm run build
+npm start
+```
+
+#### SSE 모드
+
+```bash
+npm run build
+npm run start:sse
+```
+
+---
+
+## 🔌 플랫폼별 연결 방법
+
+### 1. Claude Desktop (stdio 모드)
+
+Claude Desktop에서 MCP 서버를 사용하려면 설정 파일을 수정해야 합니다.
+
+#### 설정 파일 위치
+
+- **macOS**: `~/Library/Application Support/Claude/claude_desktop_config.json`
+- **Windows**: `%APPDATA%\Claude\claude_desktop_config.json`
+
+#### 설정 파일 편집
+
+```json
+{
+  "mcpServers": {
+    "whatmeme": {
+      "command": "node",
+      "args": [
+        "/absolute/path/to/whatmeme-mcp/dist/index.js"
+      ],
+      "env": {
+        "NAVER_CLIENT_ID": "your_client_id",
+        "NAVER_CLIENT_SECRET": "your_client_secret"
+      }
+    }
+  }
+}
+```
+
+**또는 npm 스크립트 사용:**
+
+```json
+{
+  "mcpServers": {
+    "whatmeme": {
+      "command": "npm",
+      "args": [
+        "run",
+        "start",
+        "--prefix",
+        "/absolute/path/to/whatmeme-mcp"
+      ],
+      "env": {
+        "NAVER_CLIENT_ID": "your_client_id",
+        "NAVER_CLIENT_SECRET": "your_client_secret"
+      }
+    }
+  }
+}
+```
+
+**중요**: 절대 경로를 정확하게 입력하세요!
+
+#### Claude Desktop에서 테스트
+
+1. Claude Desktop 재시작 (설정 변경 후 필요)
+2. Claude Desktop에서 Tool 확인:
+   - "whatmeme 서버의 Tool 목록 보여줘"
+   - "check_meme_status Tool로 '럭키비키' 밈 확인해줘"
+
+#### 테스트 시나리오
+
+- ✅ 서버 연결 확인: Claude Desktop에서 "whatmeme" 서버가 표시되는지 확인
+- ✅ Tool 목록 확인: 4개 Tool 모두 표시되어야 함
+- ✅ Tool 실행 테스트: 각 Tool을 실행하여 결과 확인
+
+---
+
+### 2. PlayMCP (SSE 모드)
+
+PlayMCP는 SSE (Server-Sent Events) 모드를 사용합니다.
+
+#### 서버 실행
+
+**개발 모드:**
+```bash
+npm run dev:sse
+```
+
+**프로덕션 모드:**
+```bash
+npm run build
+npm run start:sse
+```
+
+서버가 `http://localhost:3000/sse`에서 실행됩니다.
+
+#### PlayMCP 연결 설정
+
+1. PlayMCP 웹사이트 접속 (https://playmcp.com)
+2. "Add MCP Server" 또는 "서버 추가" 클릭
+3. 서버 정보 입력:
+   - **서버 이름**: `whatmeme`
+   - **서버 URL**: `http://localhost:3000/sse` (로컬) 또는 `https://your-domain.com/sse` (프로덕션)
+   - **설명**: "한국 밈 트렌드 분석 및 추천 서버"
+4. 저장 후 연결 테스트
+
+#### PlayMCP 테스트
+
+1. 서버가 실행 중인지 확인:
+   ```bash
+   curl http://localhost:3000/sse
+   # SSE 스트림이 시작되어야 함
+   ```
+
+2. PlayMCP 대시보드에서:
+   - Tool 목록 확인
+   - 각 Tool 실행 테스트
+
+**참고**: 
+- 프로덕션 환경에서는 실제 도메인과 HTTPS를 사용하세요
+- 로컬 테스트 시 PlayMCP가 같은 네트워크에 있어야 합니다
+
+---
+
+### 3. ChatGPT / Custom GPT
+
+ChatGPT의 MCP 지원은 아직 제한적입니다. 다음 방법을 시도해보세요:
+
+#### 방법 A: SSE 모드 사용
+
+1. SSE 서버 실행:
+   ```bash
+   npm run dev:sse
+   ```
+
+2. Custom GPT 편집:
+   - Actions 섹션에서 "Create new action" 클릭
+   - OpenAPI 스키마 또는 API 엔드포인트 설정
+
+**참고:** ChatGPT의 MCP 지원은 아직 제한적일 수 있습니다.
+
+---
+
+## 🧪 테스트 방법
+
+### 직접 테스트 (가장 간단) ⭐
+
+각 Tool 함수를 직접 호출하여 테스트할 수 있습니다:
+
+```bash
+npm run test:manual
+```
+
+이 명령어는 다음을 순차적으로 테스트합니다:
+1. `get_trending_memes` - 내부 데이터 (즉시 결과)
+2. `check_meme_status` - 내부 DB 검색 (즉시 결과)
+3. `check_meme_status` - 네이버 검색 (API 호출)
+4. `recommend_meme_for_context` - 네이버 이미지 검색 (API 호출)
+5. `search_meme_meaning` - 네이버 블로그 검색 (API 호출)
+
+**장점:**
+- ✅ Claude Desktop 설치 불필요
+- ✅ 빠르고 간단
+- ✅ 각 함수를 직접 테스트 가능
+- ✅ 디버깅 용이
+
+### TypeScript 타입 체크
+
+```bash
+npm run typecheck
+```
+
+### 서버 실행 테스트
+
+**stdio 모드:**
+```bash
+npm run dev
+# 서버가 정상적으로 시작되는지 확인
+```
+
+**SSE 모드:**
+```bash
+npm run dev:sse
+# 브라우저에서 http://localhost:3000/sse 접속 확인
+```
+
+---
+
+## 🛠️ Tool 사용 예시
+
+### 1. check_meme_status (유행 판독기)
+
+밈의 현재 유행 상태를 확인합니다.
+
+**요청 예시:**
+```json
+{
+  "name": "check_meme_status",
+  "arguments": {
+    "keyword": "중꺾마"
+  }
+}
+```
+
+**응답 예시 (내부 DB):**
+```
+[내부 DB] 🔥 인증된 핵인싸 밈입니다!
+
+**중꺾마**
+중요한 건 꺾이지 않는 마음
+
+태그: #동기부여
+```
+
+**응답 예시 (네이버 검색):**
+```
+[검색 분석] 🔥 지금 핫한 밈입니다.
+
+"새로운밈" 분석 결과:
+- 최근 1개월 내 비율: 85%
+- 전체 검색 결과: 2,158개
+```
+
+### 2. get_trending_memes (최신 밈 추천)
+
+현재 인기 있는 밈 목록을 가져옵니다.
+
+**요청 예시:**
+```json
+{
+  "name": "get_trending_memes",
+  "arguments": {}
+}
+```
+
+**응답 예시:**
+```
+🔥 현재 인기 밈 TOP 6
+
+1. **럭키비키**
+   - 원영적 사고
+   - 태그: #긍정 #마인드
+
+2. **중꺾마**
+   - 중요한 건 꺾이지 않는 마음
+   - 태그: #동기부여
+...
+```
+
+### 3. recommend_meme_for_context (상황별 밈 추천)
+
+상황에 맞는 밈을 추천합니다.
+
+**요청 예시:**
+```json
+{
+  "name": "recommend_meme_for_context",
+  "arguments": {
+    "situation": "퇴근하고 싶을 때"
+  }
+}
+```
+
+**응답 예시:**
+```
+💡 "퇴근하고 싶을 때" 관련 밈 추천
+
+다음 키워드로 검색해보세요:
+
+1. 퇴근하고싶을때마다 문지르는 돌
+2. 익스트림무비 - 퇴근하고싶다
+3. 후방 저는 퇴근하고 싶을 때 찌찌짤을 올려요
+...
+
+🔍 더 많은 결과: [네이버 이미지 검색](링크)
+```
+
+### 4. search_meme_meaning (뜻 풀이)
+
+밈의 뜻과 유래를 검색합니다.
+
+**요청 예시:**
+```json
+{
+  "name": "search_meme_meaning",
+  "arguments": {
+    "keyword": "돔황챠"
+  }
+}
+```
+
+**응답 예시:**
+```
+"돔황챠" 검색 결과:
+
+[블로그 1] 돔황챠의 뜻과 유래
+도망X 황당X 차단O의 줄임말로...
+
+[블로그 2] ...
+```
+
+---
+
+## 🚀 배포 가이드
+
+### 로컬 실행 (개발/테스트용)
+
+```bash
+# stdio 모드
+npm run dev
+
+# SSE 모드
+npm run dev:sse
+```
+
+### 클라우드 배포 (프로덕션용)
+
+#### Railway
+
+```bash
+railway init
+railway up
+railway env set NAVER_CLIENT_ID=xxx
+railway env set NAVER_CLIENT_SECRET=xxx
+railway env set PORT=3000
+railway env set TRANSPORT_MODE=sse
+```
+
+#### Render
+
+1. GitHub 저장소 연결
+2. 빌드 명령: `npm run build`
+3. 실행 명령: `npm run start:sse`
+4. 환경변수 설정
+
+#### Fly.io
+
+```bash
+fly launch
+fly secrets set NAVER_CLIENT_ID=xxx
+fly secrets set NAVER_CLIENT_SECRET=xxx
+```
+
+### PM2로 프로덕션 실행
+
+```bash
+npm run build
+npm install -g pm2
+pm2 start dist/index.js --name whatmeme-mcp -- --transport sse
+pm2 save
+```
+
+---
+
+## 📊 플랫폼별 테스트 체크리스트
+
+### Claude Desktop
+- [ ] 서버가 stdio 모드로 시작됨
+- [ ] Claude Desktop에서 서버 인식됨
+- [ ] 4개 Tool 모두 표시됨
+- [ ] 각 Tool 실행 성공
+
+### PlayMCP
+- [ ] SSE 서버가 정상 시작됨
+- [ ] PlayMCP에서 서버 연결 성공
+- [ ] Tool 목록 조회 성공
+- [ ] 각 Tool 실행 성공
+
+### 전체 호환성
+- [ ] stdio 모드 정상 작동
+- [ ] SSE 모드 정상 작동
+- [ ] 네이버 API 호출 정상
+- [ ] 에러 핸들링 정상
+
+---
+
+## 🆘 문제 해결
+
+### 문제: "NAVER_CLIENT_ID는 필수입니다"
+
+**해결:**
+- `.env` 파일이 프로젝트 루트에 있는지 확인
+- 환경변수 형식 확인 (`NAVER_CLIENT_ID=값`, 등호 앞뒤 공백 없음)
+- 파일 내용이 올바른지 확인
+
+### 문제: Claude Desktop에서 서버 연결 실패
+
+**해결:**
+1. 설정 파일 경로 확인
+2. 절대 경로 사용 확인
+3. Claude Desktop 재시작
+4. 서버 로그 확인 (`npm run dev`로 stdio 모드 실행 시 로그 확인)
+
+### 문제: Claude Desktop에서 Tool이 보이지 않음
+
+**해결:**
+1. 설정 파일 경로 확인
+2. 환경변수 확인
+3. 서버 빌드 확인 (`npm run build`)
+4. Claude Desktop 재시작
+
+### 문제: PlayMCP 연결 실패
+
+**해결:**
+1. SSE 서버가 실행 중인지 확인
+2. 포트(3000)가 올바른지 확인
+3. URL이 정확한지 확인 (`/sse` 포함)
+4. CORS 설정 확인
+5. 네트워크 방화벽 확인
+
+### 문제: "네이버 API 검색 실패"
+
+**해결:**
+- API 키 유효성 확인
+- 네트워크 연결 확인
+- API 호출량 제한 확인 (일일 25,000건)
+
+### 문제: 빌드 실패
+
+**해결:**
+1. `npm install` 재실행
+2. Node.js 버전 확인 (20+ 필요)
+3. TypeScript 오류 확인: `npm run typecheck`
+
+---
+
+## ⚠️ 주의사항
+
+1. **API 키 보안**
+   - 절대 소스 코드에 API 키 포함하지 않기
+   - `.env` 파일을 `.gitignore`에 추가
+   - 공개 저장소에 커밋하지 않기
+
+2. **네이버 API 제한**
+   - 일일 25,000건 제한
+   - 프로덕션에서 Rate Limiting 구현 고려
+
+3. **포트 충돌**
+   - SSE 모드 기본 포트: 3000
+   - 다른 서비스와 포트 충돌 시 `PORT` 환경변수로 변경
+
+---
+
+## 📦 기술 스택
+
+- **Runtime**: Node.js 20+ (LTS)
+- **Language**: TypeScript
+- **MCP SDK**: `@modelcontextprotocol/sdk`
+- **HTTP Client**: `axios`
+- **Date Handling**: `date-fns`
+- **Schema Validation**: `zod`
+- **Web Framework**: `express` (SSE 모드용)
+
+---
+
+## 📝 공모전 제출 체크리스트
+
+### 필수 파일
+- [x] `README.md` - 프로젝트 소개 및 가이드
+- [x] `package.json` - 의존성 정의
+- [x] `tsconfig.json` - TypeScript 설정
+- [x] `.env.example` - 환경변수 예시
+- [x] `src/` - 소스 코드
+- [x] `dist/` - 빌드 결과물 (빌드 후)
+
+### 기능
+- [x] stdio 모드 구현
+- [x] SSE 모드 구현
+- [x] 4개 Tool 구현
+- [x] 네이버 API 통합
+- [x] 에러 핸들링
+
+### 테스트
+- [x] 로컬 테스트 완료 (모든 Tool 작동 확인)
+- [ ] Claude Desktop 연결 테스트
+- [ ] PlayMCP 연결 테스트
+
+---
+
+## 🤝 기여
+
+이슈와 PR을 환영합니다!
+
+## 📄 라이선스
+
+MIT License
+
+## 📞 문의
+
+프로젝트에 대한 문의사항이 있으시면 이슈를 등록해주세요.

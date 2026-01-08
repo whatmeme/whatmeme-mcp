@@ -1,0 +1,39 @@
+{
+  "name": "whatmeme-mcp-server",
+  "version": "1.0.0",
+  "description": "WhatMeme MCP Server - 한국 밈 트렌드 분석 및 추천 서버",
+  "type": "module",
+  "main": "dist/index.js",
+  "scripts": {
+    "dev": "tsx watch src/index.ts",
+    "dev:sse": "tsx watch src/index.ts -- --transport sse",
+    "build": "tsc",
+    "start": "node dist/index.js",
+    "start:sse": "node dist/index.js --transport sse",
+    "typecheck": "tsc --noEmit",
+    "test": "tsx test-functions.ts",
+    "test:manual": "tsx test-manual.ts"
+  },
+  "keywords": [
+    "mcp",
+    "meme",
+    "naver-api",
+    "korean"
+  ],
+  "author": "",
+  "license": "MIT",
+  "dependencies": {
+    "@modelcontextprotocol/sdk": "^1.0.4",
+    "axios": "^1.7.7",
+    "date-fns": "^4.1.0",
+    "zod": "^3.23.8",
+    "dotenv": "^16.4.5",
+    "express": "^4.21.1"
+  },
+  "devDependencies": {
+    "@types/node": "^22.5.5",
+    "@types/express": "^5.0.0",
+    "typescript": "^5.6.3",
+    "tsx": "^4.19.1"
+  }
+}
