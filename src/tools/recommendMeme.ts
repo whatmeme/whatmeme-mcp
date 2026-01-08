@@ -18,13 +18,16 @@ export async function recommendMemeForContext(situation: string): Promise<string
 
     // 불필요한 단어 제거
     let normalizedSituation = situation.toLowerCase().trim();
-    normalizedSituation = normalizedSituation.replace(/\s*(밈|추천해줘|알려줘|보여줘|뭐있어|뭐야|밈|추천)\s*/g, ' ').trim();
+    normalizedSituation = normalizedSituation.replace(/\s*(밈|추천해줘|알려줘|보여줘|뭐있어|뭐야|밈|추천|추천해)\s*/g, ' ').trim();
 
     // 키워드 추출 (명사 중심)
-    const keywords = normalizedSituation.split(/\s+/).filter(word => 
-      word.length >= 2 && 
-      !['때', '하고', '하고서', '하려고', '할', '하는', '해', '을', '를', '이', '가', '의', '하고', '싶을', '싶어'].includes(word)
-    );
+    let keywords = normalizedSituation.split(/\s+/).filter(word => {
+      return word.length >= 2 && 
+        !['때', '하고', '하고서', '하려고', '할', '하는', '해', '을', '를', '이', '가', '의', '싶을', '싶어'].includes(word);
+    });
+    
+    // "퇴근하고" 같은 경우 "퇴근"만 추출
+    keywords = keywords.map(word => word.replace(/하고.*$/, '').trim()).filter(w => w.length >= 2);
 
     // 의미 연관 키워드 매핑 (예: 퇴근 → 출근, 일)
     const keywordMappings: Record<string, string[]> = {

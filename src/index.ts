@@ -26,7 +26,7 @@ function setupServerHandlers(server: Server) {
       tools: [
         {
           name: 'check_meme_status',
-          description: '밈의 현재 유행/트렌딩 상태(🔥/⚖️/🧊)만 답합니다. 뜻/유래/예시는 다루지 않음 → 그런 건 search_meme_meaning 사용. 예시 질문: "럭키비키 밈 핫해?", "골반춤 유행이야?", "중꺾마 아직 살아있어?", "요즘 헬창 밈 식었어?"',
+          description: '밈의 현재 유행/트렌딩 상태(🔥/⚖️/🧊)만 답합니다. 예시 질문: "럭키비키 밈 핫해?", "골반춤 유행이야?", "중꺾마 아직 살아있어?", "요즘 헬창 밈 식었어?"',
           inputSchema: {
             type: 'object',
             properties: {
@@ -40,7 +40,7 @@ function setupServerHandlers(server: Server) {
         },
         {
           name: 'get_trending_memes',
-          description: '현재 트렌딩 TOP 5 밈 목록을 반환합니다. (수동/주기 업데이트된 DB 기반). 예시 질문: "최신 밈 알려줘", "요즘 핫한 밈 뭐야?", "트렌딩 밈 보여줘", "인기 밈 목록 줘"',
+          description: '현재 트렌딩 TOP 5 밈 목록을 반환합니다.',
           inputSchema: {
             type: 'object',
             properties: {},
@@ -54,7 +54,7 @@ function setupServerHandlers(server: Server) {
             properties: {
               situation: {
                 type: 'string',
-                description: '상황 설명 (예: "퇴근하고 싶을 때", "시험 스트레스 받을 때", "동기부여 받고 싶을 때")',
+                description: '상황 설명 (예: "퇴근하고 싶을 때", "시험 스트레스 받을 때", "동기부여 받고 싶을 때", "신날 때")',
               },
             },
             required: ['situation'],
@@ -62,7 +62,7 @@ function setupServerHandlers(server: Server) {
         },
         {
           name: 'search_meme_meaning',
-          description: '밈의 뜻/유래/사용예시를 설명합니다. 🔥/⚖️/🧊 같은 상태 표현은 포함하지 않음 → 상태는 check_meme_status 사용. 예시 질문: "골반춤 밈 알아?", "럭키비키 뭐야?", "중꺾마 뜻 알려줘", "헬창 유래 설명해줘", "티라미수 케익 정리해줘"',
+          description: '밈의 뜻/유래/사용예시를 설명합니다. 예시 질문: "골반춤 밈 알아?", "럭키비키 뭐야?", "중꺾마 뜻 알려줘", "헬창 유래 설명해줘", "티라미수 케익 정리해줘"',
           inputSchema: {
             type: 'object',
             properties: {

@@ -17,6 +17,12 @@ const STOP_WORDS = [
   '알고있어?',
   '알고 있어?',
   '설명',
+  '설명해줘',
+  '설명해',
+  '알려줘',
+  '알려',
+  '정리해줘',
+  '정리해',
   '에 대해',
   '이란',
   '이 뭐야',
@@ -31,10 +37,15 @@ const STOP_WORDS = [
   '유행이야?',
   '살아있어',
   '살아있어?',
+  '아직',
   '끝났어',
   '끝났어?',
   '식었어',
   '식었어?',
+  // 시간 관련
+  '요즘',
+  '최근',
+  '지금',
   // 조사/어미
   '는',
   '은',
@@ -95,11 +106,19 @@ export function normalizeMemeQuery(input: string): string {
         break;
       }
       
-      // 공백 + 불용어 패턴 (예: "골반춤 밈", "럭키비키 핫해")
+      // 공백 + 불용어 패턴 (예: "골반춤 밈", "럭키비키 핫해", "중꺾마 뜻")
       const escapedStopWord = stopWord.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-      const pattern = new RegExp(`\\s+${escapedStopWord}(?=\\s|$|\\?)`, 'i');
+      const pattern = new RegExp(`\\s+${escapedStopWord}(?=\\s|$|\\?|!)`, 'i');
       if (pattern.test(normalized)) {
         normalized = normalized.replace(pattern, '').trim();
+        changed = true;
+        break;
+      }
+      
+      // 앞부분 불용어 패턴 (예: "요즘 헬창", "아직 살아있어")
+      const prefixPattern = new RegExp(`^${escapedStopWord}\\s+`, 'i');
+      if (prefixPattern.test(normalized)) {
+        normalized = normalized.replace(prefixPattern, '').trim();
         changed = true;
         break;
       }
