@@ -16,8 +16,8 @@ WhatMeme은 내부 DB 기반으로 한국 밈의 유행 상태를 분석하고, 
 ### 플랫폼 호환성
 
 - ✅ **Claude Desktop** (stdio 모드)
-- ✅ **PlayMCP** (SSE 모드)
-- ✅ **ChatGPT** (stdio/SSE 모드, 제한적 지원)
+- ✅ **PlayMCP** (Streamable HTTP 모드, `/mcp` 엔드포인트)
+- ✅ **ChatGPT** (stdio 모드, 제한적 지원)
 
 ---
 
@@ -26,7 +26,7 @@ WhatMeme은 내부 DB 기반으로 한국 밈의 유행 상태를 분석하고, 
 ```
 whatmeme-mcp/
 ├── src/
-│   ├── index.ts              # MCP 서버 메인 진입점 (stdio + SSE 하이브리드)
+│   ├── index.ts              # MCP 서버 메인 진입점 (stdio + Streamable HTTP 하이브리드)
 │   ├── config/
 │   │   └── env.ts            # 환경변수 로드 및 zod 검증
 │   ├── data/
@@ -107,13 +107,13 @@ npm run build
 npm run dev
 ```
 
-#### SSE 모드 (PlayMCP용)
+#### Streamable HTTP 모드 (PlayMCP용)
 
 ```bash
-npm run dev:sse
+npm run dev:http
 ```
 
-서버가 `http://localhost:3000/sse`에서 실행됩니다.
+서버가 `http://localhost:3000/mcp`에서 실행됩니다.
 
 ### 프로덕션 모드
 
@@ -124,11 +124,11 @@ npm run build
 npm start
 ```
 
-#### SSE 모드
+#### Streamable HTTP 모드
 
 ```bash
 npm run build
-npm run start:sse
+npm run start:http
 ```
 
 ---
@@ -196,24 +196,24 @@ Claude Desktop에서 MCP 서버를 사용하려면 설정 파일을 수정해야
 
 ---
 
-### 2. PlayMCP (SSE 모드)
+### 2. PlayMCP (Streamable HTTP 모드)
 
-PlayMCP는 SSE (Server-Sent Events) 모드를 사용합니다.
+PlayMCP는 Streamable HTTP (2025-03-26 스펙) 모드를 사용합니다.
 
 #### 서버 실행
 
 **개발 모드:**
 ```bash
-npm run dev:sse
+npm run dev:http
 ```
 
 **프로덕션 모드:**
 ```bash
 npm run build
-npm run start:sse
+npm run start:http
 ```
 
-서버가 `http://localhost:3000/sse`에서 실행됩니다.
+서버가 `http://localhost:3000/mcp`에서 실행됩니다.
 
 #### PlayMCP 연결 설정
 
@@ -221,7 +221,8 @@ npm run start:sse
 2. "Add MCP Server" 또는 "서버 추가" 클릭
 3. 서버 정보 입력:
    - **서버 이름**: `whatmeme`
-   - **서버 URL**: `http://localhost:3000/sse` (로컬) 또는 `https://your-domain.com/sse` (프로덕션)
+   - **서버 URL**: `http://localhost:3000/mcp` (로컬) 또는 `https://your-domain.com/mcp` (프로덕션)
+   - **Transport Type**: `Streamable HTTP`
    - **설명**: "한국 밈 트렌드 분석 및 추천 서버"
 4. 저장 후 연결 테스트
 
@@ -229,16 +230,17 @@ npm run start:sse
 
 1. 서버가 실행 중인지 확인:
    ```bash
-   curl http://localhost:3000/sse
-   # SSE 스트림이 시작되어야 함
+   curl http://localhost:3000/health
+   # {"status":"ok","service":"whatmeme-mcp-server",...}
    ```
 
 2. PlayMCP 대시보드에서:
+   - "정보 불러오기" 클릭하여 서버 연결 확인
    - Tool 목록 확인
    - 각 Tool 실행 테스트
 
 **참고**: 
-- 프로덕션 환경에서는 실제 도메인과 HTTPS를 사용하세요
+- 프로덕션 환경에서는 실제 도메인과 HTTPS를 사용하세요 (예: `https://your-domain.railway.app/mcp`)
 - 로컬 테스트 시 PlayMCP가 같은 네트워크에 있어야 합니다
 
 ---
@@ -247,11 +249,11 @@ npm run start:sse
 
 ChatGPT의 MCP 지원은 아직 제한적입니다. 다음 방법을 시도해보세요:
 
-#### 방법 A: SSE 모드 사용
+#### 방법 A: Streamable HTTP 모드 사용 (제한적)
 
-1. SSE 서버 실행:
+1. Streamable HTTP 서버 실행:
    ```bash
-   npm run dev:sse
+   npm run dev:http
    ```
 
 2. Custom GPT 편집:
@@ -298,10 +300,10 @@ npm run dev
 # 서버가 정상적으로 시작되는지 확인
 ```
 
-**SSE 모드:**
+**Streamable HTTP 모드:**
 ```bash
-npm run dev:sse
-# 브라우저에서 http://localhost:3000/sse 접속 확인
+npm run dev:http
+# 서버가 http://localhost:3000/mcp에서 실행됨
 ```
 
 ---
@@ -422,8 +424,8 @@ SNS나 온라인 커뮤니티에서...
 # stdio 모드
 npm run dev
 
-# SSE 모드
-npm run dev:sse
+# Streamable HTTP 모드
+npm run dev:http
 ```
 
 ### 클라우드 배포 (프로덕션용)
@@ -434,14 +436,14 @@ npm run dev:sse
 railway init
 railway up
 railway env set PORT=3000
-railway env set TRANSPORT_MODE=sse
+railway env set TRANSPORT_MODE=http
 ```
 
 #### Render
 
 1. GitHub 저장소 연결
 2. 빌드 명령: `npm run build`
-3. 실행 명령: `npm run start:sse`
+3. 실행 명령: `npm run start:http`
 4. 환경변수 설정
 
 #### Fly.io
@@ -449,7 +451,7 @@ railway env set TRANSPORT_MODE=sse
 ```bash
 fly launch
 fly secrets set PORT=3000
-fly secrets set TRANSPORT_MODE=sse
+fly secrets set TRANSPORT_MODE=http
 ```
 
 ### PM2로 프로덕션 실행
@@ -457,7 +459,7 @@ fly secrets set TRANSPORT_MODE=sse
 ```bash
 npm run build
 npm install -g pm2
-pm2 start dist/index.js --name whatmeme-mcp -- --transport sse
+pm2 start dist/index.js --name whatmeme-mcp -- --transport http
 pm2 save
 ```
 
@@ -472,14 +474,14 @@ pm2 save
 - [ ] 각 Tool 실행 성공
 
 ### PlayMCP
-- [ ] SSE 서버가 정상 시작됨
-- [ ] PlayMCP에서 서버 연결 성공
+- [ ] Streamable HTTP 서버가 정상 시작됨
+- [ ] PlayMCP에서 서버 연결 성공 (정보 불러오기)
 - [ ] Tool 목록 조회 성공
 - [ ] 각 Tool 실행 성공
 
 ### 전체 호환성
 - [ ] stdio 모드 정상 작동
-- [ ] SSE 모드 정상 작동
+- [ ] Streamable HTTP 모드 정상 작동
 - [ ] 내부 DB 검색 정상
 - [ ] 에러 핸들링 정상
 
@@ -506,11 +508,13 @@ pm2 save
 ### 문제: PlayMCP 연결 실패
 
 **해결:**
-1. SSE 서버가 실행 중인지 확인
+1. Streamable HTTP 서버가 실행 중인지 확인 (`npm run start:http`)
 2. 포트(3000)가 올바른지 확인
-3. URL이 정확한지 확인 (`/sse` 포함)
-4. CORS 설정 확인
-5. 네트워크 방화벽 확인
+3. URL이 정확한지 확인 (`/mcp` 엔드포인트 포함, 예: `https://your-domain.com/mcp`)
+4. Transport Type이 "Streamable HTTP"로 설정되었는지 확인
+5. CORS 설정 확인
+6. 네트워크 방화벽 확인
+7. Railway/Render 배포 시 포트가 올바르게 설정되었는지 확인
 
 
 ### 문제: 빌드 실패
@@ -530,7 +534,7 @@ pm2 save
    - 공개 저장소에 커밋하지 않기
 
 2. **포트 충돌**
-   - SSE 모드 기본 포트: 3000
+   - Streamable HTTP 모드 기본 포트: 3000
    - 다른 서비스와 포트 충돌 시 `PORT` 환경변수로 변경
 
 ---
@@ -542,7 +546,7 @@ pm2 save
 - **MCP SDK**: `@modelcontextprotocol/sdk`
 - **Date Handling**: `date-fns` (선택적 사용)
 - **Schema Validation**: `zod`
-- **Web Framework**: `express` (SSE 모드용)
+- **Web Framework**: `express` (Streamable HTTP 모드용)
 
 ---
 
@@ -558,7 +562,7 @@ pm2 save
 
 ### 기능
 - [x] stdio 모드 구현
-- [x] SSE 모드 구현
+- [x] Streamable HTTP 모드 구현
 - [x] 4개 Tool 구현
 - [x] 내부 DB 기반 검색
 - [x] 에러 핸들링

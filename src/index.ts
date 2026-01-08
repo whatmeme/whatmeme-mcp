@@ -1,13 +1,13 @@
 /**
  * WhatMeme MCP Server - 메인 진입점
- * stdio + SSE 하이브리드 모드 지원
+ * stdio + Streamable HTTP 하이브리드 모드 지원
  * - stdio 모드: Claude Desktop, ChatGPT용 (기본값)
- * - SSE 모드: PlayMCP용
+ * - Streamable HTTP 모드: PlayMCP용 (/mcp 엔드포인트)
  */
 
 import { Server } from '@modelcontextprotocol/sdk/server/index.js';
 import { StdioServerTransport } from '@modelcontextprotocol/sdk/server/stdio.js';
-import { SSEServerTransport } from '@modelcontextprotocol/sdk/server/sse.js';
+import { StreamableHTTPServerTransport } from '@modelcontextprotocol/sdk/server/streamableHttp.js';
 import { ListToolsRequestSchema, CallToolRequestSchema } from '@modelcontextprotocol/sdk/types.js';
 import express from 'express';
 import { env } from './config/env.js';
@@ -170,22 +170,16 @@ async function main() {
     ? args[transportIndex + 1] || 'stdio'
     : 'stdio';
 
-  if (transportMode === 'sse') {
-    // SSE 모드: Express 서버 + SSEServerTransport
-    console.error('Starting WhatMeme MCP Server in SSE mode...');
+  if (transportMode === 'http' || transportMode === 'streamable') {
+    // Streamable HTTP 모드: Express 서버 + StreamableHTTPServerTransport
+    console.error('Starting WhatMeme MCP Server in Streamable HTTP mode...');
     
-    // createMcpExpressApp() 대신 일반 Express 앱 사용
-    // 이유: createMcpExpressApp()이 내부적으로 body-parser를 설정할 수 있음
     const app = express();
 
-    // 세션별 transport 저장 (실제 프로덕션에서는 Redis 등 사용)
-    const transports = new Map<string, SSEServerTransport>();
-
-    // CORS 설정 - /sse와 /message에만 적용
-    // 주의: body-parsing 미들웨어는 절대 추가하지 않음
-    app.use('/sse', (req, res, next) => {
+    // CORS 설정 (전역)
+    app.use((req, res, next) => {
       res.header('Access-Control-Allow-Origin', '*');
-      res.header('Access-Control-Allow-Methods', 'GET, OPTIONS');
+      res.header('Access-Control-Allow-Methods', 'POST, GET, OPTIONS');
       res.header('Access-Control-Allow-Headers', 'Content-Type, Accept');
       if (req.method === 'OPTIONS') {
         res.sendStatus(200);
@@ -194,19 +188,10 @@ async function main() {
       next();
     });
 
-    app.use('/message', (req, res, next) => {
-      res.header('Access-Control-Allow-Origin', '*');
-      res.header('Access-Control-Allow-Methods', 'POST, OPTIONS');
-      res.header('Access-Control-Allow-Headers', 'Content-Type, x-session-id');
-      if (req.method === 'OPTIONS') {
-        res.sendStatus(200);
-        return;
-      }
-      next();
-    });
+    // Body parser (JSON) - Streamable HTTP는 JSON 요청/응답 사용
+    app.use(express.json());
 
     // Health check 엔드포인트
-    // body-parsing 불필요하므로 express.json() 제거
     app.get('/health', (req, res) => {
       res.json({
         status: 'ok',
@@ -216,71 +201,39 @@ async function main() {
       });
     });
 
-    // SSE 엔드포인트 설정
-    // 주의: express.json() 미들웨어 적용하지 않음
-    app.get('/sse', async (req, res) => {
+    // Stateless Streamable HTTP transport 생성 (요청마다 재사용)
+    // sessionIdGenerator를 undefined로 설정하여 stateless 모드 활성화
+    const transport = new StreamableHTTPServerTransport({
+      sessionIdGenerator: undefined, // Stateless mode
+    });
+
+    // MCP 서버를 transport에 연결
+    await server.connect(transport);
+
+    // Streamable HTTP 엔드포인트 (/mcp)
+    // Stateless: 요청마다 동일한 transport 인스턴스 사용
+    app.post('/mcp', async (req, res) => {
       try {
-        console.error('New SSE connection request');
-        const transport = new SSEServerTransport('/message', res);
-        const sessionId = transport.sessionId;
-        transports.set(sessionId, transport);
-        console.error(`SSE connection established, sessionId: ${sessionId}`);
-        
-        // 각 세션마다 새로운 서버 인스턴스 생성
-        const sessionServer = new Server(
-          {
-            name: 'whatmeme-mcp-server',
-            version: '1.0.0',
-          },
-          {
-            capabilities: {
-              tools: {},
-            },
-          }
-        );
-        
-        // 핸들러 설정
-        setupServerHandlers(sessionServer);
-        
-        // 서버 연결 (connect()가 자동으로 start()를 호출함)
-        await sessionServer.connect(transport);
+        // handleRequest가 요청을 처리하고 응답을 전송함
+        await transport.handleRequest(req, res, req.body);
+        console.error('Streamable HTTP request processed');
       } catch (error) {
-        console.error('SSE connection error:', error);
+        console.error('Streamable HTTP error:', error);
         if (!res.headersSent) {
-          res.status(500).send('SSE connection failed');
+          res.status(500).json({ error: 'Internal server error' });
         }
       }
     });
 
-    // POST 메시지 엔드포인트
-    // 주의: express.json() 미들웨어를 절대 사용하지 않음
-    // handlePostMessage가 직접 request stream을 파싱함
-    app.post('/message', async (req, res) => {
+    // GET 요청도 지원 (SSE 스트림용, 선택적)
+    app.get('/mcp', async (req, res) => {
       try {
-        const sessionId = (req.query.sessionId as string) || 
-                          (req.headers['x-session-id'] as string);
-        
-        if (!sessionId) {
-          console.error('POST /message: sessionId not found');
-          res.status(400).send('Session ID required');
-          return;
-        }
-
-        const transport = transports.get(sessionId);
-        
-        if (!transport) {
-          console.error(`POST /message: Session not found, sessionId: ${sessionId}`);
-          res.status(404).send('Session not found');
-          return;
-        }
-
-        console.error(`POST /message: Received message for sessionId: ${sessionId}`);
-        // handlePostMessage가 request stream을 직접 파싱함
-        await transport.handlePostMessage(req, res);
+        await transport.handleRequest(req, res);
+        console.error('Streamable HTTP GET request processed');
       } catch (error) {
-        console.error('Message handling error:', error);
+        console.error('Streamable HTTP GET error:', error);
         if (!res.headersSent) {
-          res.status(500).send('Message handling failed');
+          res.status(500).json({ error: 'Internal server error' });
         }
       }
     });
@@ -288,7 +241,8 @@ async function main() {
     // HTTP 서버 시작
     const port = env.PORT || 3000;
     app.listen(port, () => {
-      console.error(`WhatMeme MCP Server running on http://localhost:${port}/sse`);
+      console.error(`WhatMeme MCP Server running on http://localhost:${port}/mcp`);
+      console.error(`PlayMCP endpoint: http://localhost:${port}/mcp`);
     });
   } else {
     // stdio 모드: StdioServerTransport (기본값)
