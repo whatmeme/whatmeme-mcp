@@ -27,13 +27,13 @@ function setupServerHandlers(server: Server) {
       tools: [
         {
           name: 'check_meme_status',
-          description: '밈의 현재 유행/트렌딩 상태를 5단계로 답합니다(🔥 80-100 / ⚡ 60-80 / ⚖️ 40-60 / 🧊 20-40 / ❄️ 0-20). 예시 질문: "럭키비키 밈 핫해?", "골반춤 유행이야?", "중꺾마 아직 살아있어?", "요즘 헬창 밈 식었어?"',
+          description: '밈의 현재 유행/트렌딩 상태를 5단계로 답합니다\n(🔥 80-100 / ⚡ 60-80 / ⚖️ 40-60 / 🧊 20-40 / ❄️ 0-20)\n\n예시 질문: "매끈매끈하다 밈 핫해?", "골반춤 유행이야?", "요즘 럭키비키 밈 식었어?"',
           inputSchema: {
             type: 'object',
             properties: {
               keyword: {
                 type: 'string',
-                description: '검색할 밈 키워드 또는 질문 (예: "럭키비키 밈 핫해?", "골반춤 유행이야?")',
+                description: '검색할 밈 키워드 또는 질문',
               },
             },
             required: ['keyword'],
@@ -41,7 +41,7 @@ function setupServerHandlers(server: Server) {
         },
         {
           name: 'get_trending_memes',
-          description: '현재 트렌딩 TOP 5 밈 목록을 반환합니다.',
+          description: '현재 트렌딩 TOP 5 밈 목록을 반환합니다.\n\n예시 질문: "최신 밈 알려줘", "요즘 핫한 밈 뭐야?", "지금 유행하는 밈 뭐있어?"',
           inputSchema: {
             type: 'object',
             properties: {},
@@ -49,13 +49,13 @@ function setupServerHandlers(server: Server) {
         },
         {
           name: 'recommend_meme_for_context',
-          description: '주어진 상황에 맞는 밈을 내부 DB에서 찾아 추천합니다. 예시 질문: "퇴근하고 싶을 때 밈 추천해줘", "시험 스트레스 받을 때 밈", "동기부여 받고 싶을 때 밈 알려줘", "신날 때 쓰는 밈 뭐있어?"',
+          description: '주어진 상황에 맞는 밈을 추천합니다.\n\n예시 질문: "퇴근하고 싶을 때 밈 추천해줘", "동기부여 받고 싶을 때 밈 알려줘", "신날 때 쓰는 밈 뭐있어?"',
           inputSchema: {
             type: 'object',
             properties: {
               situation: {
                 type: 'string',
-                description: '상황 설명 (예: "퇴근하고 싶을 때", "시험 스트레스 받을 때", "동기부여 받고 싶을 때", "신날 때")',
+                description: '상황 설명',
               },
             },
             required: ['situation'],
@@ -63,13 +63,13 @@ function setupServerHandlers(server: Server) {
         },
         {
           name: 'search_meme_meaning',
-          description: '밈의 뜻/유래/사용예시를 설명합니다. 예시 질문: "골반춤 밈 알아?", "럭키비키 뭐야?", "중꺾마 뜻 알려줘", "헬창 유래 설명해줘", "티라미수 케익 정리해줘"',
+          description: '밈의 뜻/유래/사용예시를 설명합니다.\n\n예시 질문: "매끈매끈하다 밈 알아?", "골반춤이 뭐야?", "럭키비키 밈 알려줘"',
           inputSchema: {
             type: 'object',
             properties: {
               keyword: {
                 type: 'string',
-                description: '검색할 밈 키워드 또는 질문 (예: "골반춤 밈 알아?", "럭키비키 뭐야?", "중꺾마 뜻")',
+                description: '검색할 밈 키워드 또는 질문',
               },
             },
             required: ['keyword'],
@@ -77,7 +77,7 @@ function setupServerHandlers(server: Server) {
         },
         {
           name: 'get_random_meme',
-          description: '랜덤으로 밈 하나를 선택해서 뜻/유래/예시를 보여줍니다. 예시 질문: "밈 아무거나 알려줘", "랜덤 밈 보여줘", "밈 하나 추천해줘", "밈 랜덤 추천"',
+          description: '랜덤으로 밈 하나를 선택해서 뜻/유래/예시를 보여줍니다.\n\n예시 질문: "밈 아무거나 알려줘", "밈 하나 추천해줘", "밈 랜덤 추천"',
           inputSchema: {
             type: 'object',
             properties: {},
