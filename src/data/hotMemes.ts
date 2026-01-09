@@ -410,7 +410,7 @@ export const CONST_HOT_MEMES: MemeData[] = [
     contexts: ['틱톡', '릴스', '쇼츠', '영상'],
     moods: ['신남', '유쾌'],
     trendRank: 41,
-    popularity: 52,
+    popularity: 19,
     updatedAt: '2026-01-09',
   },
   {
@@ -554,7 +554,7 @@ export const CONST_HOT_MEMES: MemeData[] = [
     contexts: ['댓글', '캡션', '이슈', '풍자'],
     moods: ['유머', '과장'],
     trendRank: 77,
-    popularity: 41,
+    popularity: 10,
     updatedAt: '2026-01-09',
   },
 
@@ -674,7 +674,7 @@ export const CONST_HOT_MEMES: MemeData[] = [
     contexts: ['인스타', '사진', '고양이', 'SNS'],
     moods: ['감성', '사랑스러움', '유쾌'],
     trendRank: 78,
-    popularity: 56,
+    popularity: 8,
     updatedAt: '2026-01-09',
   },
   {
@@ -790,7 +790,7 @@ export const CONST_HOT_MEMES: MemeData[] = [
     contexts: ['틱톡', '릴스', '쇼츠', 'ASMR'],
     moods: ['호기심', '유쾌', '힐링'],
     trendRank: 81,
-    popularity: 58,
+    popularity: 5,
     updatedAt: '2026-01-09',
   },
   {
@@ -864,7 +864,7 @@ export const CONST_HOT_MEMES: MemeData[] = [
     contexts: ['SNS', '댓글', '영상', '이미지'],
     moods: ['호기심', '재미'],
     trendRank: 17,
-    popularity: 82,
+    popularity: 72,
     updatedAt: '2026-01-09',
   },
   {
