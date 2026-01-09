@@ -27,7 +27,7 @@ export const CONST_HOT_MEMES: MemeData[] = [
     contexts: ['퇴근', '출근', '회사', '일', '직장', '근무', '피곤', '힘든', '어려운', '실패', '불행'],
     moods: ['긍정', '자조', '유쾌', '낙관', '여유'],
     trendRank: 24,
-    popularity: 35,
+    popularity: 45,
     updatedAt: '2026-01-08',
   },
   {
@@ -94,6 +94,7 @@ export const CONST_HOT_MEMES: MemeData[] = [
     examples: [
       '치킨 사왔네? 야르!',
       '(가위바위보 이겼을 때) 야르!',
+      '(맛있는 음식을 보고) 잘 먹겠습니다, 야르!',
     ],
     tags: ['감탄사', '유행어', '리바이벌', '2025'],
     contexts: ['게임', '먹방', '일상', '댓글', '채팅'],

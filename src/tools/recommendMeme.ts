@@ -36,89 +36,173 @@ export async function recommendMemeForContext(situation: string): Promise<string
     const recommendations: Recommendation[] = CONST_HOT_MEMES.map(meme => {
       let score = 0;
       const matchedTokens: string[] = [];
-      const tokenSet = new Set(tokens.map(t => t.toLowerCase()));
+      const situationLower = situation.toLowerCase();
 
-      // contexts 매칭 (가장 높은 점수)
+      // 1. contexts 매칭 (최고 우선순위 - 상황과 직접 관련된 맥락이 가장 중요)
+      let contextMatches = 0;
       for (const context of meme.contexts || []) {
         const contextLower = context.toLowerCase();
         for (const token of tokens) {
-          if (contextLower.includes(token.toLowerCase()) || token.toLowerCase().includes(contextLower)) {
-            score += 10;
+          const tokenLower = token.toLowerCase();
+          // 정확 매칭 (예: "퇴근" === "퇴근")
+          if (contextLower === tokenLower) {
+            score += 18; // 높은 점수
+            contextMatches++;
             if (!matchedTokens.includes(context)) {
-              matchedTokens.push(context);
+              matchedTokens.push(`context:${context}`);
+            }
+          }
+          // 부분 매칭
+          else if (contextLower.includes(tokenLower) || tokenLower.includes(contextLower)) {
+            score += 12;
+            contextMatches++;
+            if (!matchedTokens.includes(context)) {
+              matchedTokens.push(`context:${context}`);
             }
           }
         }
       }
+      // contexts가 여러 개 매칭되면 보너스 (상황과 강하게 연관됨)
+      if (contextMatches >= 2) {
+        score += 8;
+      }
 
-      // moods 매칭 (2순위)
+      // 2. moods 매칭 (높은 우선순위 - 감정/분위기 매칭)
+      let moodMatches = 0;
       for (const mood of meme.moods || []) {
         const moodLower = mood.toLowerCase();
         for (const token of tokens) {
-          if (moodLower.includes(token.toLowerCase()) || token.toLowerCase().includes(moodLower)) {
-            score += 7;
+          const tokenLower = token.toLowerCase();
+          // 정확 매칭 (예: "신남" === "신남")
+          if (moodLower === tokenLower) {
+            score += 16;
+            moodMatches++;
             if (!matchedTokens.includes(mood)) {
-              matchedTokens.push(mood);
+              matchedTokens.push(`mood:${mood}`);
             }
+          }
+          // 부분 매칭
+          else if (moodLower.includes(tokenLower) || tokenLower.includes(moodLower)) {
+            score += 10;
+            moodMatches++;
+            if (!matchedTokens.includes(mood)) {
+              matchedTokens.push(`mood:${mood}`);
+            }
+          }
+        }
+        // "신날" → "신남" 같은 변형 매칭 보너스
+        if (mood === '신남' && situationLower.includes('신날')) {
+          score += 14;
+          if (!matchedTokens.includes('mood:신남')) {
+            matchedTokens.push('mood:신남');
           }
         }
       }
 
-      // tags 매칭 (3순위)
+      // 3. examples 매칭 (중간 우선순위 - 직접 예시가 있는 경우)
+      const examplesText = meme.examples.join(' ').toLowerCase();
+      let exampleMatches = 0;
+      for (const token of tokens) {
+        const tokenLower = token.toLowerCase();
+        if (tokenLower.length >= 3 && examplesText.includes(tokenLower)) {
+          exampleMatches++;
+          // 핵심 키워드가 예시에 있으면 점수 (contexts나 moods와 함께 매칭되면 더 의미있음)
+          score += 14;
+        }
+      }
+      // contexts나 moods 매칭과 함께 examples 매칭이 있으면 보너스 (매우 관련있음)
+      if (exampleMatches > 0 && (contextMatches > 0 || moodMatches > 0)) {
+        score += 10;
+      }
+      if (exampleMatches > 0 && !matchedTokens.includes('examples')) {
+        matchedTokens.push('examples');
+      }
+
+      // 4. meaning 매칭 (의미적 매칭, 보조 점수)
+      const meaningLower = meme.meaning.toLowerCase();
+      let meaningMatches = 0;
+      for (const token of tokens) {
+        const tokenLower = token.toLowerCase();
+        if (tokenLower.length >= 3 && meaningLower.includes(tokenLower)) {
+          meaningMatches++;
+          score += 8;
+        }
+      }
+      // meaning에 핵심 키워드가 포함되고, contexts/moods와 함께 매칭되면 보너스
+      if (meaningMatches > 0 && (contextMatches > 0 || moodMatches > 0)) {
+        score += 6;
+      }
+      // 동의어/유사어 매칭 (예: "힘들" ↔ "피곤", "동기부여" ↔ "의지")
+      const synonymPairs = [
+        { from: ['힘들', '힘든', '어려운'], to: ['피곤', '어려움', '힘듦'] },
+        { from: ['동기부여', '의지'], to: ['동기부여', '의지', '투지'] },
+        { from: ['스트레스'], to: ['스트레스', '힘든', '어려운'] },
+      ];
+      for (const pair of synonymPairs) {
+        const hasToken = pair.from.some(word => tokens.some(t => t.toLowerCase().includes(word.toLowerCase())));
+        const hasMeaning = pair.to.some(word => meaningLower.includes(word));
+        if (hasToken && hasMeaning && (contextMatches > 0 || moodMatches > 0)) {
+          score += 8;
+          meaningMatches++;
+        }
+      }
+
+      // 5. tags 매칭 (낮은 우선순위)
       for (const tag of meme.tags) {
         const tagLower = tag.toLowerCase();
         for (const token of tokens) {
-          if (tagLower.includes(token.toLowerCase()) || token.toLowerCase().includes(tagLower)) {
-            score += 5;
-            if (!matchedTokens.includes(tag)) {
-              matchedTokens.push(tag);
+          const tokenLower = token.toLowerCase();
+          if (tagLower === tokenLower) {
+            score += 4;
+            if (!matchedTokens.includes(`tag:${tag}`)) {
+              matchedTokens.push(`tag:${tag}`);
+            }
+          } else if (tagLower.includes(tokenLower) || tokenLower.includes(tagLower)) {
+            score += 2;
+            if (!matchedTokens.includes(`tag:${tag}`)) {
+              matchedTokens.push(`tag:${tag}`);
             }
           }
         }
       }
 
-      // name/aliases 매칭 (4순위)
+      // 6. name/aliases 매칭 (가장 낮은 우선순위)
       const nameLower = meme.name.toLowerCase();
       for (const token of tokens) {
-        if (nameLower.includes(token.toLowerCase()) || token.toLowerCase().includes(nameLower)) {
-          score += 3;
+        const tokenLower = token.toLowerCase();
+        if (nameLower.includes(tokenLower) || tokenLower.includes(nameLower)) {
+          score += 1;
           if (!matchedTokens.includes(meme.name)) {
             matchedTokens.push(meme.name);
           }
         }
       }
 
-      // examples 매칭 (보조, 가중치 낮게)
-      const examplesText = meme.examples.join(' ').toLowerCase();
-      for (const token of tokens) {
-        if (examplesText.includes(token.toLowerCase())) {
-          score += 2;
-        }
+      // 7. popularity 보너스 (기본 점수가 일정 이상이고, contexts/moods/examples 매칭이 있을 때만 적용)
+      // 상황 매칭이 약하면 인기 밈이 상위로 올라가는 것을 방지
+      if (score >= 15 && (contextMatches > 0 || moodMatches > 0 || exampleMatches > 0)) {
+        const popularityBonus = Math.min((meme.popularity || 50) * 0.06, 6);
+        score += popularityBonus;
       }
-
-      // popularity 보너스 (기본 점수에 반영)
-      score += (meme.popularity || 50) * 0.1;
 
       return { meme, score, matchedTokens };
     })
       .filter(rec => rec.score > 0)
       .sort((a, b) => b.score - a.score)
-      .slice(0, 5);
+      .slice(0, 1); // 1개만 추천
 
     if (recommendations.length === 0) {
       return `❓ "${situation}"에 맞는 밈을 찾을 수 없습니다.\n현재 DB의 밈 목록을 확인해보세요: get_trending_memes`;
     }
 
-    // 결과 포맷팅 (매칭 근거 포함)
-    const output = recommendations.map((rec, index) => {
-      const tagsText = rec.meme.tags.map(tag => `#${tag}`).join(' ');
-      const matchedText = rec.matchedTokens.length > 0 
-        ? ` (매칭: ${rec.matchedTokens.slice(0, 3).join(', ')})`
-        : '';
-      return `${index + 1}. **${rec.meme.name}** — ${rec.meme.meaning} (${tagsText})${matchedText}`;
-    }).join('\n');
+    // 결과 포맷팅 (1개만 반환)
+    const rec = recommendations[0];
+    const tagsText = rec.meme.tags.map(tag => `#${tag}`).join(' ');
+    const matchedText = rec.matchedTokens.length > 0 
+      ? ` (매칭: ${rec.matchedTokens.slice(0, 3).join(', ')})`
+      : '';
 
-    return `💡 "${situation}" 관련 밈 추천\n\n${output}`;
+    return `💡 "${situation}" 관련 밈 추천\n\n**${rec.meme.name}**\n\n${rec.meme.meaning}\n\n${tagsText}${matchedText}`;
     
   } catch (error) {
     const errorMessage = error instanceof Error ? error.message : String(error);

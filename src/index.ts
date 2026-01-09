@@ -27,7 +27,7 @@ function setupServerHandlers(server: Server) {
       tools: [
         {
           name: 'check_meme_status',
-          description: '밈의 현재 유행/트렌딩 상태를 5단계로 답합니다\n(🔥 80-100 / ⚡ 60-80 / ⚖️ 40-60 / 🧊 20-40 / ❄️ 0-20)\n\n예시 질문: "매끈매끈하다 밈 핫해?", "골반춤 밈 유행이야?", "요즘 럭키비키 밈 식었어?"',
+          description: '밈의 현재 유행/트렌딩 상태를 5단계로 답합니다\n(🔥: 80~100점 / ⚡: 60~80점 / ⚖️: 40~60점 / 🧊: 20~40점 / ❄️: 0~20점)\n\n예시 질문: "매끈매끈하다 밈 핫해?", "골반춤 밈 유행이야?", "요즘 럭키비키 밈 식었어?"',
           inputSchema: {
             type: 'object',
             properties: {
@@ -49,7 +49,7 @@ function setupServerHandlers(server: Server) {
         },
         {
           name: 'recommend_meme_for_context',
-          description: '주어진 상황에 맞는 밈을 추천합니다.\n\n예시 질문: "친구가 치킨 사왔을 때 밈 추천해줘", "동기부여 받고 싶을 때 밈 알려줘", "신날 때 쓰는 밈 뭐있어?"',
+          description: '주어진 상황에 맞는 밈을 추천합니다.\n\n예시 질문: "친구가 치킨 사왔을 때 밈 추천해줘", "시험 스트레스 받을 때 밈", "신날 때 쓰는 밈 뭐있어?"',
           inputSchema: {
             type: 'object',
             properties: {
