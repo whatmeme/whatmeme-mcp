@@ -188,21 +188,30 @@ export async function recommendMemeForContext(situation: string): Promise<string
       return { meme, score, matchedTokens };
     })
       .filter(rec => rec.score > 0)
-      .sort((a, b) => b.score - a.score)
-      .slice(0, 1); // 1개만 추천
+      .sort((a, b) => b.score - a.score);
 
     if (recommendations.length === 0) {
       return `❓ "${situation}"에 맞는 밈을 찾을 수 없습니다.\n현재 DB의 밈 목록을 확인해보세요: get_trending_memes`;
     }
 
-    // 결과 포맷팅 (1개만 반환)
-    const rec = recommendations[0];
-    const tagsText = rec.meme.tags.map(tag => `#${tag}`).join(' ');
-    const matchedText = rec.matchedTokens.length > 0 
-      ? ` (매칭: ${rec.matchedTokens.slice(0, 3).join(', ')})`
-      : '';
+    // 상위 밈 대비 점수가 너무 낮은 결과 제외 (1위 점수의 30% 미만이면 제외)
+    const topScore = recommendations[0].score;
+    const minScoreThreshold = topScore * 0.3;
+    const filteredRecommendations = recommendations.filter(rec => rec.score >= minScoreThreshold);
 
-    return `💡 "${situation}" 관련 밈 추천\n\n**${rec.meme.name}**\n\n${rec.meme.meaning}\n\n${tagsText}${matchedText}`;
+    // 최대 3개까지만 반환 (임계값을 넘은 것들 중에서)
+    const finalRecommendations = filteredRecommendations.slice(0, 3);
+
+    // 결과 포맷팅
+    const output = finalRecommendations.map((rec, index) => {
+      const tagsText = rec.meme.tags.map(tag => `#${tag}`).join(' ');
+      const matchedText = rec.matchedTokens.length > 0 
+        ? ` (매칭: ${rec.matchedTokens.slice(0, 3).join(', ')})`
+        : '';
+      return `${index + 1}. **${rec.meme.name}** — ${rec.meme.meaning} (${tagsText})${matchedText}`;
+    }).join('\n\n');
+
+    return `💡 "${situation}" 관련 밈 추천\n\n${output}`;
     
   } catch (error) {
     const errorMessage = error instanceof Error ? error.message : String(error);

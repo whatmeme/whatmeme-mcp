@@ -49,7 +49,7 @@ function setupServerHandlers(server: Server) {
         },
         {
           name: 'recommend_meme_for_context',
-          description: '주어진 상황에 맞는 밈을 추천합니다.\n\n예시 질문: "친구가 치킨 사왔을 때 밈 추천해줘", "시험 스트레스 받을 때 밈", "신날 때 쓰는 밈 뭐있어?"',
+          description: '주어진 상황에 맞는 밈을 추천합니다.\n\n예시 질문: "시험 스트레스 받을 때 밈", "신날 때 쓰는 밈 뭐있어?", "합의 없이 결론을 멋대로 지을 때 밈 추천해줘"',
           inputSchema: {
             type: 'object',
             properties: {
