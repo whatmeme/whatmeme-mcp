@@ -34,6 +34,8 @@ export function getRandomMeme(): string {
     }
     
     output += `**태그**\n${tagsText}\n\n`;
+    output += `**트렌드 순위**\n${meme.trendRank}위\n\n`;
+    output += `**인기도**\n${meme.popularity}/100\n\n`;
     output += `💡 유행 상태를 확인하고 싶다면 check_meme_status를 사용해보세요.`;
 
     return output;
