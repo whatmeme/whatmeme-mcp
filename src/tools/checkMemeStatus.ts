@@ -21,7 +21,7 @@ export async function checkMemeStatus(keyword: string): Promise<string> {
       if (result.reason === 'EMPTY') {
         return `❓ 검색어가 너무 짧습니다. 밈 이름을 입력해주세요.`;
       }
-      return `❓ "${keyword}"는 현재 밈 DB에 없습니다.\n일반 단어일 수 있으니, 밈 이름을 정확히 입력해주세요.`;
+      return `❓ "${keyword}"는 아직 등록된 밈이 아닙니다.\n일반 단어일 수 있으니, 밈 이름을 정확히 입력해주세요.\n📩 새로운 밈 추가 요청: woongaaaaa1@gmail.com`;
     }
 
     const { meme } = result;
