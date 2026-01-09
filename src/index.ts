@@ -16,6 +16,7 @@ import {
   getTrendingMemes,
   recommendMemeForContext,
   searchMemeMeaning,
+  getRandomMeme,
 } from './tools/index.js';
 
 // MCP 서버 핸들러 설정 함수
@@ -74,6 +75,14 @@ function setupServerHandlers(server: Server) {
             required: ['keyword'],
           },
         },
+        {
+          name: 'get_random_meme',
+          description: '랜덤으로 밈 하나를 선택해서 뜻/유래/예시를 보여줍니다. 예시 질문: "밈 아무거나 알려줘", "랜덤 밈 보여줘", "밈 하나 추천해줘", "밈 랜덤 추천"',
+          inputSchema: {
+            type: 'object',
+            properties: {},
+          },
+        },
       ],
     };
   });
@@ -115,6 +124,11 @@ function setupServerHandlers(server: Server) {
             throw new Error('keyword 파라미터가 필요합니다');
           }
           result = await searchMemeMeaning(keyword);
+          break;
+        }
+
+        case 'get_random_meme': {
+          result = getRandomMeme();
           break;
         }
 
