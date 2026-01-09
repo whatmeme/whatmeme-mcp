@@ -27,7 +27,7 @@ function setupServerHandlers(server: Server) {
       tools: [
         {
           name: 'check_meme_status',
-          description: '밈의 현재 유행/트렌딩 상태를 5단계로 답합니다\n(🔥 80-100 / ⚡ 60-80 / ⚖️ 40-60 / 🧊 20-40 / ❄️ 0-20)\n\n예시 질문: "매끈매끈하다 밈 핫해?", "골반춤 유행이야?", "요즘 럭키비키 밈 식었어?"',
+          description: '밈의 현재 유행/트렌딩 상태를 5단계로 답합니다\n(🔥 80-100 / ⚡ 60-80 / ⚖️ 40-60 / 🧊 20-40 / ❄️ 0-20)\n\n예시 질문: "매끈매끈하다 밈 핫해?", "골반춤 밈 유행이야?", "요즘 럭키비키 밈 식었어?"',
           inputSchema: {
             type: 'object',
             properties: {
@@ -41,7 +41,7 @@ function setupServerHandlers(server: Server) {
         },
         {
           name: 'get_trending_memes',
-          description: '현재 트렌딩 TOP 5 밈 목록을 반환합니다.\n\n예시 질문: "최신 밈 알려줘", "요즘 핫한 밈 뭐야?", "지금 유행하는 밈 뭐있어?"',
+          description: '현재 트렌딩 TOP 5 밈 목록을 반환합니다.\n\n예시 질문: "최신 밈 알려줘", "요즘 핫한 밈 뭐야?", "지금 유행하는 밈 뭐 있어?"',
           inputSchema: {
             type: 'object',
             properties: {},
@@ -49,7 +49,7 @@ function setupServerHandlers(server: Server) {
         },
         {
           name: 'recommend_meme_for_context',
-          description: '주어진 상황에 맞는 밈을 추천합니다.\n\n예시 질문: "퇴근하고 싶을 때 밈 추천해줘", "동기부여 받고 싶을 때 밈 알려줘", "신날 때 쓰는 밈 뭐있어?"',
+          description: '주어진 상황에 맞는 밈을 추천합니다.\n\n예시 질문: "친구가 치킨 사왔을 때 밈 추천해줘", "동기부여 받고 싶을 때 밈 알려줘", "신날 때 쓰는 밈 뭐있어?"',
           inputSchema: {
             type: 'object',
             properties: {
@@ -63,7 +63,7 @@ function setupServerHandlers(server: Server) {
         },
         {
           name: 'search_meme_meaning',
-          description: '밈의 뜻/유래/사용예시를 설명합니다.\n\n예시 질문: "매끈매끈하다 밈 알아?", "골반춤이 뭐야?", "럭키비키 밈 알려줘"',
+          description: '밈의 뜻/유래/사용예시를 설명합니다.\n\n예시 질문: "매끈매끈하다 밈 알아?", "골반춤 밈이 뭐야?", "럭키비키 밈 알려줘"',
           inputSchema: {
             type: 'object',
             properties: {
@@ -180,14 +180,14 @@ async function main() {
   // 명령행 인자 파싱 (명령행 인자가 없으면 env.TRANSPORT_MODE 사용)
   const args = process.argv.slice(2);
   const transportIndex = args.indexOf('--transport');
-  const transportMode = transportIndex >= 0 
+  const transportMode = transportIndex >= 0
     ? args[transportIndex + 1] || env.TRANSPORT_MODE
     : env.TRANSPORT_MODE;
 
   if (transportMode === 'http' || transportMode === 'streamable') {
     // Streamable HTTP 모드: Express 서버 + StreamableHTTPServerTransport
     console.error('Starting WhatMeme MCP Server in Streamable HTTP mode...');
-    
+
     const app = express();
 
     // CORS 설정 (전역)
@@ -258,10 +258,10 @@ async function main() {
   } else {
     // stdio 모드: StdioServerTransport (기본값)
     console.error('Starting WhatMeme MCP Server in stdio mode...');
-    
+
     const transport = new StdioServerTransport();
     await server.connect(transport);
-    
+
     console.error('WhatMeme MCP Server ready (stdio mode)');
   }
 }
