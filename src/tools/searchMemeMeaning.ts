@@ -22,7 +22,7 @@ export async function searchMemeMeaning(keyword: string): Promise<string> {
       if (result.reason === 'EMPTY') {
         return `❓ 검색어가 너무 짧습니다. 밈 이름을 입력해주세요.`;
       }
-      return `❓ "${keyword}"는 현재 밈 DB에 없습니다. (일반 단어일 수 있어요)\n추가가 필요하면 밈 이름/설명을 알려주세요.\n\n💡 유행 상태를 확인하고 싶다면 check_meme_status를 사용해보세요.`;
+      return `❓ "${keyword}"는 아직 등록된 밈이 아닙니다.\n일반 단어일 수 있으니, 밈 이름을 정확히 입력해주세요.\n\n📩 새로운 밈 추가 요청: woongaaaaa1@gmail.com\n💡 유행 상태를 확인하고 싶다면 check_meme_status를 사용해보세요.`;
     }
 
     const { meme } = result;
