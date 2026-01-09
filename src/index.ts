@@ -26,7 +26,7 @@ function setupServerHandlers(server: Server) {
       tools: [
         {
           name: 'check_meme_status',
-          description: '밈의 현재 유행/트렌딩 상태(🔥/⚖️/🧊)만 답합니다. 예시 질문: "럭키비키 밈 핫해?", "골반춤 유행이야?", "중꺾마 아직 살아있어?", "요즘 헬창 밈 식었어?"',
+          description: '밈의 현재 유행/트렌딩 상태를 5단계로 답합니다(🔥 80-100 / ⚡ 60-80 / ⚖️ 40-60 / 🧊 20-40 / ❄️ 0-20). 예시 질문: "럭키비키 밈 핫해?", "골반춤 유행이야?", "중꺾마 아직 살아있어?", "요즘 헬창 밈 식었어?"',
           inputSchema: {
             type: 'object',
             properties: {

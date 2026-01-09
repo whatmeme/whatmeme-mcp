@@ -34,17 +34,30 @@ export async function checkMemeStatus(keyword: string): Promise<string> {
     let oneLineSummary: string;
 
     if (score >= 80) {
+      // 80 ~ 100: 매우 핫한 밈
       statusEmoji = '🔥';
-      statusText = '지금 핫한 밈';
-      oneLineSummary = '현재 트렌딩 상위권';
-    } else if (score >= 50) {
+      statusText = '지금 매우 핫한 밈';
+      oneLineSummary = '현재 최고 트렌딩 상위권';
+    } else if (score >= 60) {
+      // 60 ~ 80: 인기 있는 밈
+      statusEmoji = '⚡';
+      statusText = '인기 있는 밈';
+      oneLineSummary = '트렌딩 중인 인기 밈';
+    } else if (score >= 40) {
+      // 40 ~ 60: 보통 밈
       statusEmoji = '⚖️';
-      statusText = '스테디 밈';
+      statusText = '보통 인기 밈';
       oneLineSummary = '안정적인 인기 유지';
-    } else {
+    } else if (score >= 20) {
+      // 20 ~ 40: 차가운 밈
       statusEmoji = '🧊';
-      statusText = '과거 밈 or 마이너';
-      oneLineSummary = '과거 유행 또는 소수층';
+      statusText = '차가운 밈';
+      oneLineSummary = '과거 유행 또는 하위 인기';
+    } else {
+      // 0 ~ 20: 매우 차가운 밈
+      statusEmoji = '❄️';
+      statusText = '매우 차가운 밈';
+      oneLineSummary = '마이너 또는 과거 밈';
     }
 
     // 결과 포맷팅 (유행 상태만, origin/examples 절대 포함 금지)
