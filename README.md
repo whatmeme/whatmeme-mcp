@@ -1,5 +1,6 @@
-### WhatMeme MCP Server
+### whatmeme MCP Server
 
-한국 밈 트렌드 분석 및 추천을 위한 MCP(Model Context Protocol) 서버
+최신 밈 트렌드와 재미있는 밈을 제공하는 MCP(Model Context Protocol) 서버
 
+Homepage: https://whatmeme.site/
 MCP Server URL: https://sx8ajmutmd.us-east-1.awsapprunner.com/mcp
