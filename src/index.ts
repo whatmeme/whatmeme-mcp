@@ -18,6 +18,7 @@ import {
   searchMemeMeaning,
   getRandomMeme,
 } from './tools/index.js';
+import adminRouter from './routes/admin.js';
 
 // MCP 서버 핸들러 설정 함수
 function setupServerHandlers(server: Server) {
@@ -214,6 +215,9 @@ async function main() {
         timestamp: new Date().toISOString(),
       });
     });
+
+    // 관리자 API 라우터 등록
+    app.use('/api/admin', adminRouter);
 
     // Stateless Streamable HTTP transport 생성 (요청마다 재사용)
     // sessionIdGenerator를 undefined로 설정하여 stateless 모드 활성화

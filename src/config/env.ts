@@ -56,6 +56,7 @@ if (envPath) {
 const envSchema = z.object({
   PORT: z.coerce.number().default(3000),
   TRANSPORT_MODE: z.enum(['stdio', 'sse', 'http']).optional().default('http'),
+  ADMIN_API_KEY: z.string().optional(),
 });
 
 // 환경변수 검증 및 export
