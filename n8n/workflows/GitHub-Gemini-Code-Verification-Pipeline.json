@@ -1,0 +1,170 @@
+{
+  "name": "GitHub & Gemini Code Verification Pipeline",
+  "nodes": [
+    {
+      "parameters": {
+        "owner": {
+          "__rl": true,
+          "value": "whatmeme",
+          "mode": "name"
+        },
+        "repository": {
+          "__rl": true,
+          "value": "whatmeme-mcp",
+          "mode": "name"
+        },
+        "events": [
+          "push"
+        ],
+        "options": {}
+      },
+      "id": "bc88fcd3-bfce-4548-a18d-3aa449388b6a",
+      "name": "GitHub Trigger",
+      "type": "n8n-nodes-base.githubTrigger",
+      "typeVersion": 1,
+      "position": [
+        160,
+        -96
+      ],
+      "webhookId": "4d9d78e2-e8f2-4e6c-b4de-8c090534d7ec",
+      "credentials": {
+        "githubApi": {
+          "id": "4zyWPcG4WJx1jiJv",
+          "name": "GitHub account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "resource": "chat",
+        "model": "gpt-4o-mini",
+        "prompt": {
+          "messages": [
+            {
+              "content": "=아래의 코드 변경사항을 리뷰해.\n---\n\n{{ $json.files.map(f => `파일명: ${f.filename}\\n변경내용:\\n${f.patch}`).join('\\n\\n---\\n\\n') }}"
+            }
+          ]
+        },
+        "options": {},
+        "requestOptions": {}
+      },
+      "id": "bc6da118-5253-431a-b423-f9bcc7ad44c4",
+      "name": "GPT-4o Review",
+      "type": "n8n-nodes-base.openAi",
+      "typeVersion": 1,
+      "position": [
+        512,
+        -96
+      ],
+      "credentials": {
+        "openAiApi": {
+          "id": "vKeiPygfhvujKlE2",
+          "name": "OpenAi account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "url": "=https://api.github.com/repos/{{ $json.body.repository.full_name }}/commits/{{ $json.body.after }}",
+        "authentication": "predefinedCredentialType",
+        "nodeCredentialType": "githubApi",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.3,
+      "position": [
+        336,
+        -96
+      ],
+      "id": "11174195-a964-4511-9c4c-e91df712341f",
+      "name": "HTTP Request",
+      "credentials": {
+        "githubApi": {
+          "id": "4zyWPcG4WJx1jiJv",
+          "name": "GitHub account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "modelId": {
+          "__rl": true,
+          "value": "models/gemini-2.5-flash",
+          "mode": "list",
+          "cachedResultName": "models/gemini-2.5-flash"
+        },
+        "messages": {
+          "values": [
+            {
+              "content": "=아래의 [코드 변경사항]과 앞선 [GPT-4o 1차 리뷰 의견]을 종합적으로 검토해서, 최종 검증 절차를 진행해.\n\n---\n\n[코드 변경사항]\n{{ $('HTTP Request').item.json.files.map(f => `파일명: ${f.filename}\\n변경내용:\\n${f.patch}`).join('\\n\\n') }}\n\n---\n\n[GPT-4o 1차 리뷰 의견]\n{{ $json.message.content }}"
+            }
+          ]
+        },
+        "builtInTools": {},
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.googleGemini",
+      "typeVersion": 1.1,
+      "position": [
+        688,
+        -96
+      ],
+      "id": "169820c5-687f-4ef7-886e-7997fd8565f9",
+      "name": "Message a model",
+      "credentials": {
+        "googlePalmApi": {
+          "id": "aLGCbcOCiiW8rGQu",
+          "name": "Google Gemini(PaLM) Api account"
+        }
+      }
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "GitHub Trigger": {
+      "main": [
+        [
+          {
+            "node": "HTTP Request",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "HTTP Request": {
+      "main": [
+        [
+          {
+            "node": "GPT-4o Review",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "GPT-4o Review": {
+      "main": [
+        [
+          {
+            "node": "Message a model",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": true,
+  "settings": {
+    "executionOrder": "v1",
+    "availableInMCP": false
+  },
+  "versionId": "9b50688d-6cd3-4227-b910-f712a1d07829",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "078098c40c8d5adc645653392f24bb7e90894c2b1eaabcf0b370740183f7c5b9"
+  },
+  "id": "C8USDBQ0ycFcwsVG-AGw3",
+  "tags": []
+}
