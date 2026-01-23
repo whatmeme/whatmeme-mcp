@@ -1,0 +1,150 @@
+{
+  "name": "AI Cross-Verification (GPT/Gemini/Cursor)",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "verify-chat",
+        "responseMode": "responseNode",
+        "options": {}
+      },
+      "id": "6e172ba1-9112-4d24-a630-32c5cfffd3f5",
+      "name": "Webhook (From MCP)",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 1,
+      "position": [
+        0,
+        0
+      ],
+      "webhookId": "verify-chat-webhook"
+    },
+    {
+      "parameters": {
+        "resource": "chat",
+        "model": "gpt-4o-mini",
+        "prompt": {
+          "messages": [
+            {
+              "role": "system",
+              "content": "사용자의 [질문]과 AI의 [답변]이 주어져.\n\n내용이 맞는지 틀린것 보다, 답변이 질문의 의도를 제대로 이해했는지, 그리고 답변이 어떤 전제를 깔고 전개됐는지를 중심으로 분석해.\n\n## 분석 기준\n\n- 질문의 목적과 답변의 방향이 맞는지가 핵심이야.\n- 답변이 암묵적으로 가정하고 있는 전제가 무엇인지 드러내.\n\n## 출력 형식\n\n1. 질문 의도 파악\n   - 사용자가 이 질문을 통해 무엇을 얻고 싶어 했는지.\n\n2. 답변의 핵심 논리\n   - 답변이 어떤 전제와 논리를 바탕으로 구성됐는지 요약해.\n\n3. 잠재적 누락 사항\n   - 질문 의도 대비 답변에서 다루지 않은 부분이나 애매하게 넘어간 전제가 있다면 지적해."
+            },
+            {
+              "content": "=User Question:\n{{ $json.body.user_question }}\n\nAI Answer:\n{{ $json.body.ai_answer }}"
+            }
+          ]
+        },
+        "options": {},
+        "requestOptions": {}
+      },
+      "id": "2c75cc7a-93b6-4ea3-bab8-d9be41ca6a53",
+      "name": "GPT-4o Analyst",
+      "type": "n8n-nodes-base.openAi",
+      "typeVersion": 1,
+      "position": [
+        224,
+        0
+      ],
+      "credentials": {
+        "openAiApi": {
+          "id": "vKeiPygfhvujKlE2",
+          "name": "OpenAi account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "modelId": {
+          "__rl": true,
+          "value": "models/gemini-2.5-flash",
+          "mode": "list",
+          "cachedResultName": "models/gemini-2.5-flash"
+        },
+        "messages": {
+          "values": [
+            {
+              "content": "=GPT-4o의 1차 분석을 참고하되, 코드의 맥락(Context)을 고려해서 유연하게 검증해.\n\n## 검증 원칙 (Review Guidelines)\n\n### 1. 맥락 우선\n사용자가 \"간단한 예제\", \"빠르게 짜줘\"라고 요청한 경우에는  \n구조가 단순하거나 예외 처리가 부족해도 PASS 해도 돼.  \n다만 실제 보안 사고로 이어질 수 있는 문제는 예외 없이 FAIL 처리해.\n\n### 2. FAIL vs WARNING 판단 기준\n아래 중 하나라도 해당하면 FAIL이야.\n\n- 코드가 실행 자체가 불가능한 경우  \n  (문법 오류, 무한 루프 등)\n- 실제 보안 사고로 직결될 수 있는 취약점  \n  (SQL Injection, XSS, 실사용 가능한 비밀번호 / API Key / Secret 노출)\n- 사용자가 명시한 핵심 요구사항을 전혀 충족하지 못한 경우\n\n코드는 동작하지만 운영 환경에서 위험할 수 있거나  \nBest Practice를 따르지 않은 경우에는 WARNING을 주고 개선점을 제안해.\n\n## 중점 검토 항목 (Checklist)\n\n### 보안 취약점 (Critical)\nSQL Injection, XSS 가능성,  \n실사용 가능해 보이는 비밀번호 / 키 / 토큰 노출  \n이런 게 보이면 무조건 FAIL이야.\n\n### 치명적 논리 오류\n무한 루프, 문법 에러, 명백한 리소스 누수  \n이런 경우도 FAIL이야.\n\n### 안전장치 미흡\ntry-catch 누락, 입력값 검증 부재 같은 건  \n맥락에 따라 PASS 또는 WARNING으로 판단해."
+            }
+          ]
+        },
+        "builtInTools": {},
+        "options": {}
+      },
+      "id": "fde4c669-fd90-4939-a0ed-017aa2e4180b",
+      "name": "Gemini Red Team",
+      "type": "@n8n/n8n-nodes-langchain.googleGemini",
+      "typeVersion": 1.1,
+      "position": [
+        448,
+        0
+      ],
+      "credentials": {
+        "googlePalmApi": {
+          "id": "aLGCbcOCiiW8rGQu",
+          "name": "Google Gemini(PaLM) Api account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "respondWith": "text",
+        "responseBody": "={{ $json.content.parts[0].text }}",
+        "options": {}
+      },
+      "id": "d1ba93c5-859e-4266-87c0-4b34aecb7d84",
+      "name": "Respond to Cursor",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1,
+      "position": [
+        672,
+        0
+      ]
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Webhook (From MCP)": {
+      "main": [
+        [
+          {
+            "node": "GPT-4o Analyst",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "GPT-4o Analyst": {
+      "main": [
+        [
+          {
+            "node": "Gemini Red Team",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Gemini Red Team": {
+      "main": [
+        [
+          {
+            "node": "Respond to Cursor",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": true,
+  "settings": {
+    "executionOrder": "v1",
+    "availableInMCP": false
+  },
+  "versionId": "db3a23ba-44bd-454c-b7b1-941c2bfbe0bf",
+  "meta": {
+    "instanceId": "078098c40c8d5adc645653392f24bb7e90894c2b1eaabcf0b370740183f7c5b9"
+  },
+  "id": "6TiGKGs4V-wpkm3fVtVuU",
+  "tags": []
+}
