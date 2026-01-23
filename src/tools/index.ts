@@ -8,3 +8,4 @@ export { getTrendingMemes } from './getTrendingMemes.js';
 export { recommendMemeForContext } from './recommendMeme.js';
 export { searchMemeMeaning } from './searchMemeMeaning.js';
 export { getRandomMeme } from './getRandomMeme.js';
+export { verifyChatLogic } from './verifyChatLogic.js';

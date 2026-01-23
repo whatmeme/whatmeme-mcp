@@ -17,6 +17,7 @@ import {
   recommendMemeForContext,
   searchMemeMeaning,
   getRandomMeme,
+  verifyChatLogic,
 } from './tools/index.js';
 import adminRouter from './routes/admin.js';
 
@@ -84,6 +85,24 @@ function setupServerHandlers(server: Server) {
             properties: {},
           },
         },
+        {
+          name: 'verify_chat_logic',
+          description: '사용자의 질문과 AI의 답변을 n8n Webhook으로 보내서 검증 결과를 받아옵니다.',
+          inputSchema: {
+            type: 'object',
+            properties: {
+              user_question: {
+                type: 'string',
+                description: '사용자의 질문',
+              },
+              ai_answer: {
+                type: 'string',
+                description: 'AI가 생성한 답변',
+              },
+            },
+            required: ['user_question', 'ai_answer'],
+          },
+        },
       ],
     };
   });
@@ -130,6 +149,19 @@ function setupServerHandlers(server: Server) {
 
         case 'get_random_meme': {
           result = getRandomMeme();
+          break;
+        }
+
+        case 'verify_chat_logic': {
+          const user_question = args?.user_question as string;
+          const ai_answer = args?.ai_answer as string;
+          if (!user_question) {
+            throw new Error('user_question 파라미터가 필요합니다');
+          }
+          if (!ai_answer) {
+            throw new Error('ai_answer 파라미터가 필요합니다');
+          }
+          result = await verifyChatLogic(user_question, ai_answer);
           break;
         }
 
