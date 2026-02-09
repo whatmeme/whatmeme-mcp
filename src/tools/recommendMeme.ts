@@ -68,22 +68,28 @@ export async function recommendMemeForContext(situation: string): Promise<string
       }
 
       // 2. moods 매칭 (높은 우선순위 - 감정/분위기 매칭)
+      // 가중치: 기존 점수의 1.5배 적용 (감정 매칭의 중요도 강화)
+      // - 정확 매칭: 16점 → 24점 (1.5배)
+      // - 부분 매칭: 10점 → 15점 (1.5배)
+      // - 변형 매칭 보너스: 14점 → 21점 (1.5배)
       let moodMatches = 0;
       for (const mood of meme.moods || []) {
         const moodLower = mood.toLowerCase();
         for (const token of tokens) {
           const tokenLower = token.toLowerCase();
           // 정확 매칭 (예: "신남" === "신남")
+          // 가중치: 16점 × 1.5 = 24점
           if (moodLower === tokenLower) {
-            score += 16;
+            score += 24; // 기존 16점에서 1.5배 증가
             moodMatches++;
             if (!matchedTokens.includes(mood)) {
               matchedTokens.push(`mood:${mood}`);
             }
           }
           // 부분 매칭
+          // 가중치: 10점 × 1.5 = 15점
           else if (moodLower.includes(tokenLower) || tokenLower.includes(moodLower)) {
-            score += 10;
+            score += 15; // 기존 10점에서 1.5배 증가
             moodMatches++;
             if (!matchedTokens.includes(mood)) {
               matchedTokens.push(`mood:${mood}`);
@@ -91,8 +97,9 @@ export async function recommendMemeForContext(situation: string): Promise<string
           }
         }
         // "신날" → "신남" 같은 변형 매칭 보너스
+        // 가중치: 14점 × 1.5 = 21점
         if (mood === '신남' && situationLower.includes('신날')) {
-          score += 14;
+          score += 21; // 기존 14점에서 1.5배 증가
           if (!matchedTokens.includes('mood:신남')) {
             matchedTokens.push('mood:신남');
           }

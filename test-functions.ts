@@ -8,7 +8,7 @@ import { checkMemeStatus } from './src/tools/checkMemeStatus.js';
 import { getTrendingMemes } from './src/tools/getTrendingMemes.js';
 import { recommendMemeForContext } from './src/tools/recommendMeme.js';
 import { searchMemeMeaning } from './src/tools/searchMemeMeaning.js';
-import { NaverAPIClient } from './src/services/naverAPI.js';
+// import { NaverAPIClient } from './src/services/naverAPI.js'; // 주석 처리: 사용되지 않는 테스트
 import { parseNaverDate, isWithinOneMonth, calculateRecentPercentage } from './src/utils/dateHelper.js';
 import { cleanText } from './src/utils/textCleaner.js';
 
@@ -23,13 +23,13 @@ async function runTests() {
     const meme1 = findMemeByName('럭키비키');
     console.log('✅ "럭키비키" 검색:', meme1 ? '성공' : '실패');
     if (meme1) {
-      console.log(`   결과: ${meme1.name} - ${meme1.desc}`);
+      console.log(`   결과: ${meme1.name} - ${meme1.meaning}`);
     }
 
     const meme2 = findMemeByName('존재하지않는밈');
     console.log('✅ "존재하지않는밈" 검색:', meme2 === null ? '성공 (null 반환)' : '실패');
   } catch (error) {
-    console.log('❌ 오류:', error);
+    console.log('❌ 오류:', error instanceof Error ? error.message : String(error));
   }
 
   // 테스트 2: 텍스트 클리닝
@@ -42,7 +42,7 @@ async function runTests() {
     console.log('   원본:', dirtyText);
     console.log('   결과:', cleaned);
   } catch (error) {
-    console.log('❌ 오류:', error);
+    console.log('❌ 오류:', error instanceof Error ? error.message : String(error));
   }
 
   // 테스트 3: 날짜 파싱
@@ -59,10 +59,13 @@ async function runTests() {
     const percentage = calculateRecentPercentage(postdates);
     console.log('✅ 최근 비율 계산:', percentage + '%');
   } catch (error) {
-    console.log('❌ 오류:', error);
+    console.log('❌ 오류:', error instanceof Error ? error.message : String(error));
   }
 
   // 테스트 4: 네이버 API 클라이언트
+  // 주석 처리: NaverAPIClient가 src 폴더에서 실제로 사용되지 않음 (test-functions.ts에서만 import됨)
+  // 실제 네이버 API 호출은 checkMemeStatus, searchMemeMeaning, recommendMemeForContext에서 직접 처리됨
+  /*
   console.log('\n📋 테스트 4: 네이버 API 클라이언트');
   console.log('-'.repeat(60));
   try {
@@ -82,8 +85,10 @@ async function runTests() {
   } catch (error) {
     console.log('❌ 오류:', error instanceof Error ? error.message : String(error));
   }
+  */
 
   // 테스트 5: get_trending_memes
+  // 참고: test-manual.ts와 test-smoke.ts에서도 동일한 테스트 수행
   console.log('\n📋 테스트 5: get_trending_memes');
   console.log('-'.repeat(60));
   try {
@@ -92,10 +97,11 @@ async function runTests() {
     console.log('결과 미리보기:');
     console.log(result.substring(0, 200) + '...');
   } catch (error) {
-    console.log('❌ 오류:', error);
+    console.log('❌ 오류:', error instanceof Error ? error.message : String(error));
   }
 
   // 테스트 6: check_meme_status (내부 DB)
+  // 참고: test-manual.ts와 test-smoke.ts에서도 동일한 테스트 수행
   console.log('\n📋 테스트 6: check_meme_status (내부 DB)');
   console.log('-'.repeat(60));
   try {
@@ -104,10 +110,11 @@ async function runTests() {
     console.log('결과 미리보기:');
     console.log(result.substring(0, 200) + '...');
   } catch (error) {
-    console.log('❌ 오류:', error);
+    console.log('❌ 오류:', error instanceof Error ? error.message : String(error));
   }
 
   // 테스트 7: check_meme_status (네이버 검색)
+  // 참고: test-manual.ts에서도 동일한 테스트 수행
   console.log('\n📋 테스트 7: check_meme_status (네이버 검색)');
   console.log('-'.repeat(60));
   try {
@@ -116,10 +123,11 @@ async function runTests() {
     console.log('결과 미리보기:');
     console.log(result.substring(0, 200) + '...');
   } catch (error) {
-    console.log('❌ 오류:', error);
+    console.log('❌ 오류:', error instanceof Error ? error.message : String(error));
   }
 
   // 테스트 8: recommend_meme_for_context
+  // 참고: test-manual.ts와 test-smoke.ts에서도 동일한 테스트 수행
   console.log('\n📋 테스트 8: recommend_meme_for_context');
   console.log('-'.repeat(60));
   try {
@@ -128,10 +136,11 @@ async function runTests() {
     console.log('결과 미리보기:');
     console.log(result.substring(0, 200) + '...');
   } catch (error) {
-    console.log('❌ 오류:', error);
+    console.log('❌ 오류:', error instanceof Error ? error.message : String(error));
   }
 
   // 테스트 9: search_meme_meaning
+  // 참고: test-manual.ts와 test-smoke.ts에서도 동일한 테스트 수행
   console.log('\n📋 테스트 9: search_meme_meaning');
   console.log('-'.repeat(60));
   try {
@@ -140,7 +149,7 @@ async function runTests() {
     console.log('결과 미리보기:');
     console.log(result.substring(0, 200) + '...');
   } catch (error) {
-    console.log('❌ 오류:', error);
+    console.log('❌ 오류:', error instanceof Error ? error.message : String(error));
   }
 
   console.log('\n' + '='.repeat(60));
